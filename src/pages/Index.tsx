@@ -8,7 +8,6 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
-import { PredictionsTimeline } from "@/components/PredictionsTimeline";
 import { QuickActions } from "@/components/QuickActions";
 import { AgentChatbox } from "@/components/AgentChatbox";
 import { OrdersSection } from "@/components/OrdersSection";
@@ -80,10 +79,9 @@ const Index = () => {
           <StockAlert />
         </section>
 
-        {/* Dashboard Grid */}
-        <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
+        {/* Stock Charts */}
+        <section className="mb-4 sm:mb-6">
           <StockHealthChart />
-          <PredictionsTimeline />
         </section>
 
         {/* Photo Capture */}
