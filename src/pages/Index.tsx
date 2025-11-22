@@ -56,24 +56,24 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
-      {/* Floating Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/50">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
+      {/* Floating Oval Header */}
+      <div className="fixed top-4 left-4 right-4 z-50 sm:top-6 sm:left-6 sm:right-6">
+        <header className="mx-auto max-w-5xl backdrop-blur-xl bg-background/70 border border-border/50 rounded-full shadow-lg px-6 py-4 sm:px-8 sm:py-5">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
               MyStock
             </h1>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm hover:bg-accent/50">
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm hover:bg-accent/50 rounded-full">
               <LogOut className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Sign Out</span>
               <span className="sm:hidden">Out</span>
             </Button>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 pt-20 sm:pt-24 pb-8 sm:px-6">
+      <main className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 pb-8 sm:px-6">
         {/* Top Alert */}
         <section className="mb-6 sm:mb-8">
           <StockAlert />
