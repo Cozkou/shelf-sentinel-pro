@@ -1,0 +1,93 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
+
+    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID) {
+      throw new Error('ElevenLabs credentials not configured');
+    }
+
+    const { supplier_info, order_details } = await req.json();
+
+    // Build the agent context/prompt with order details
+    const agentPrompt = `You are a procurement assistant making an order call. 
+    
+Order Details:
+- Product: ${order_details.product_name}
+- Quantity Needed: ${order_details.quantity_needed} units
+- Expected Price: $${order_details.price_per_unit} per unit
+- Total Cost: $${order_details.total_cost}
+
+Supplier Information:
+- Name: ${supplier_info.supplier_name}
+- Location: ${supplier_info.location}
+- Selection Reasoning: ${supplier_info.reasoning}
+
+Your task is to:
+1. Confirm the supplier can fulfill the order
+2. Verify pricing and delivery timeline
+3. Place the order if terms are acceptable`;
+
+    // Create a conversational AI session with ElevenLabs
+    const response = await fetch('https://api.elevenlabs.io/v1/convai/agent/call', {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVENLABS_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        agent_id: ELEVENLABS_AGENT_ID,
+        prompt: agentPrompt,
+        metadata: {
+          order_id: `order_${Date.now()}`,
+          product: order_details.product_name,
+          supplier: supplier_info.supplier_name,
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('ElevenLabs API error:', errorText);
+      throw new Error(`ElevenLabs API failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Agent call initiated:', result);
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        session_id: result.session_id || result.id,
+        message: 'Voice agent call initiated'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    );
+
+  } catch (error) {
+    console.error('Error initiating agent call:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    );
+  }
+});
