@@ -87,11 +87,9 @@ export const StockHealthChart = () => {
 
       if (error) throw error;
 
-      toast.success(`${itemName} deleted successfully`);
       fetchCurrentStock();
     } catch (error) {
       console.error('Error deleting item:', error);
-      toast.error('Failed to delete item');
     }
   };
 
@@ -148,11 +146,11 @@ export const StockHealthChart = () => {
           </div>
         </div>
 
-      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full">
+      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full -mx-4 px-4 md:mx-0 md:px-0">
         <ResponsiveContainer>
           <BarChart
             data={itemsStock}
-            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+            margin={{ top: 10, right: 20, left: -20, bottom: 20 }}
           >
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis
@@ -188,9 +186,29 @@ export const StockHealthChart = () => {
               <Bar
                 dataKey="quantity"
                 radius={[4, 4, 0, 0]}
+                onMouseEnter={() => {}}
+                style={{
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s ease',
+                }}
               >
                 {itemsStock.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getBarColor(entry.quantity)} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={getBarColor(entry.quantity)}
+                    opacity={1}
+                    style={{
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.8';
+                      e.currentTarget.style.filter = 'brightness(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.filter = 'brightness(1)';
+                    }}
+                  />
                 ))}
               </Bar>
 
@@ -240,7 +258,7 @@ export const StockHealthChart = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.2, delay: 0.1 }}
                     className="h-6 w-6 md:h-7 md:w-7 flex items-center justify-center rounded-full bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 transition-colors"
-                    onClick={() => toast.info('Call supplier feature coming soon!')}
+                    onClick={() => {}}
                   >
                     <Phone className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   </motion.button>
