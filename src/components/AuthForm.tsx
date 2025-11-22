@@ -51,13 +51,21 @@ export const AuthForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md p-8">
-      <h2 className="mb-6 text-2xl font-semibold text-foreground">
-        {isLogin ? "Sign In" : "Create Account"}
-      </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Card className="w-full max-w-md p-8 sm:p-10 bg-gradient-to-br from-card to-accent/5 border-border/50 shadow-xl">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
+          MyStock
+        </h1>
+        <h2 className="text-xl font-semibold text-foreground">
+          {isLogin ? "Welcome Back" : "Get Started"}
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          {isLogin ? "Sign in to your account" : "Create your account to track inventory"}
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium">Email</Label>
           <Input
             id="email"
             type="email"
@@ -65,10 +73,11 @@ export const AuthForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="name@example.com"
+            className="h-11"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-sm font-medium">Password</Label>
           <Input
             id="password"
             type="password"
@@ -77,17 +86,18 @@ export const AuthForm = () => {
             required
             placeholder="••••••••"
             minLength={6}
+            className="h-11"
           />
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Processing..." : isLogin ? "Sign In" : "Sign Up"}
+        <Button type="submit" className="w-full h-11 shadow-sm" disabled={loading}>
+          {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
         </Button>
       </form>
       <button
         onClick={() => setIsLogin(!isLogin)}
-        className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
+        className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-primary transition-colors"
       >
-        {isLogin ? "Need an account? Sign up" : "Have an account? Sign in"}
+        {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
       </button>
     </Card>
   );

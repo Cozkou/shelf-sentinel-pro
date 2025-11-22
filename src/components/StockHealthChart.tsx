@@ -71,7 +71,7 @@ export const StockHealthChart = () => {
 
   if (loading) {
     return (
-      <Card className="p-6 bg-gradient-to-br from-background to-muted/20 border-border/40">
+      <Card className="p-8 bg-gradient-to-br from-card to-accent/5 border-border/50 text-center">
         <p className="text-sm text-muted-foreground">Loading stock data...</p>
       </Card>
     );
@@ -79,7 +79,7 @@ export const StockHealthChart = () => {
 
   if (itemsData.length === 0) {
     return (
-      <Card className="p-6 bg-gradient-to-br from-background to-muted/20 border-border/40">
+      <Card className="p-8 bg-gradient-to-br from-card to-accent/5 border-border/50 text-center">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Stock History</h3>
           <p className="text-sm text-muted-foreground mt-2">
@@ -91,7 +91,7 @@ export const StockHealthChart = () => {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
       {itemsData.map((item) => {
         const chartConfig = {
           quantity: {
@@ -103,7 +103,7 @@ export const StockHealthChart = () => {
         return (
           <Card 
             key={item.itemId} 
-            className="p-6 bg-gradient-to-br from-background to-muted/20 border-border/40"
+            className="p-6 bg-gradient-to-br from-card to-accent/5 border-border/50 shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-foreground">{item.itemName}</h3>
