@@ -10,7 +10,7 @@ import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
 import { PredictionsTimeline } from "@/components/PredictionsTimeline";
 import { QuickActions } from "@/components/QuickActions";
-import { AgentActivityFeed } from "@/components/AgentActivityFeed";
+import { AgentChatbox } from "@/components/AgentChatbox";
 import { OrdersSection } from "@/components/OrdersSection";
 import CameraCapture from "@/components/CameraCapture";
 
@@ -118,9 +118,9 @@ const Index = () => {
           />
         </section>
 
-        {/* Agent Activity & Orders */}
+        {/* Agent Chat & Orders */}
         <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
-          <AgentActivityFeed />
+          <AgentChatbox />
           <OrdersSection />
         </section>
 
