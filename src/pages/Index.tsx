@@ -55,15 +55,15 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:py-5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
+      {/* Floating Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/50">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
-              Inventory Sentinel
+            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              MyStock
             </h1>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm">
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm hover:bg-accent/50">
               <LogOut className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Sign Out</span>
               <span className="sm:hidden">Out</span>
@@ -73,21 +73,21 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-7xl px-4 pt-20 sm:pt-24 pb-8 sm:px-6">
         {/* Top Alert */}
-        <section className="mb-4 sm:mb-6">
+        <section className="mb-6 sm:mb-8">
           <StockAlert />
         </section>
 
         {/* Stock Charts */}
-        <section className="mb-4 sm:mb-6">
+        <section className="mb-6 sm:mb-8">
           <StockHealthChart />
         </section>
 
         {/* Photo Capture */}
-        <section className="mb-4 sm:mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
-            Capture Photo
+        <section className="mb-6 sm:mb-8">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
+            Quick Actions
           </h3>
           <QuickActions 
             onCameraCapture={handleCameraCapture}
@@ -95,14 +95,14 @@ const Index = () => {
         </section>
 
         {/* Agent Chat & Orders */}
-        <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
+        <section className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 sm:grid-cols-2">
           <AgentChatbox />
           <OrdersSection />
         </section>
 
         {/* Photo Archive Section */}
-        <section className="mb-4 sm:mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
+        <section className="mb-6 sm:mb-8">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
             Photo Archive
           </h3>
           <PhotoArchive refreshTrigger={refreshPhotos} />
