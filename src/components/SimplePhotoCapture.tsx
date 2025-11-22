@@ -208,11 +208,23 @@ export const SimplePhotoCapture = ({ onPhotoSaved }: SimplePhotoCaptureProps) =>
           disabled={isProcessing}
           className="w-full p-5 sm:p-6 text-left disabled:cursor-not-allowed"
         >
-          <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm sm:mb-5 sm:h-14 sm:w-14">
+          <div className="mb-4 sm:mb-5">
             {isProcessing ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
             ) : (
-              <Camera className="h-6 w-6" />
+              <div className="inline-flex h-12 w-12 items-center justify-center sm:h-14 sm:w-14">
+                <div className="relative">
+                  {/* Outer ring */}
+                  <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse" />
+                  {/* Middle ring */}
+                  <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-full border-[3px] border-primary bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
+                    {/* Inner circle */}
+                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-primary to-primary/70" />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           <h3 className="mb-2 text-base font-semibold text-foreground sm:text-lg">
