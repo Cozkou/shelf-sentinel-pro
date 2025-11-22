@@ -92,3 +92,109 @@ export async function analyzeVideoFromUrl(
     throw new Error("Failed to analyze video. Please try again.");
   }
 }
+
+/**
+ * Analyzes an image file using fal.ai's vision LLM for object detection and inventory counting
+ * @param imageFile - The image file to analyze
+ * @param prompt - The analysis prompt (default focuses on inventory counting)
+ * @returns The AI analysis result with object counts and details
+ */
+export async function analyzeImage(
+  imageFile: File,
+  prompt?: string
+): Promise<string> {
+  try {
+    // Upload the image file to fal storage
+    const imageUrl = await fal.storage.upload(imageFile);
+
+    console.log("Uploaded image to:", imageUrl);
+
+    const analysisPrompt = prompt ||
+      `Analyze this inventory shelf image in detail. For each distinct product or item visible:
+1. Identify the product/item type
+2. Count the exact number of units visible
+3. Note the condition (well-stocked, low stock, out of stock)
+4. Describe the arrangement/organization
+
+Provide a structured response with:
+- Total number of different product types
+- Individual product counts
+- Overall stock status assessment
+- Any items that need immediate attention`;
+
+    // Use fal.ai's vision LLM (Google Gemini Flash) for image analysis
+    const result = await fal.subscribe("fal-ai/any-llm/vision", {
+      input: {
+        prompt: analysisPrompt,
+        image_url: imageUrl,
+        model: "google/gemini-flash-1.5",
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          console.log("Image analysis in progress...", update);
+        }
+      },
+    });
+
+    return result.data.output;
+  } catch (error) {
+    console.error("Image analysis error:", error);
+
+    if (error instanceof Error) {
+      throw new Error(`Failed to analyze image: ${error.message}`);
+    }
+
+    throw new Error("Failed to analyze image. Please try again.");
+  }
+}
+
+/**
+ * Analyzes an image from a URL using fal.ai's vision LLM
+ * @param imageUrl - The URL of the image to analyze
+ * @param prompt - The analysis prompt (default focuses on inventory counting)
+ * @returns The AI analysis result with object counts and details
+ */
+export async function analyzeImageFromUrl(
+  imageUrl: string,
+  prompt?: string
+): Promise<string> {
+  try {
+    const analysisPrompt = prompt ||
+      `Analyze this inventory shelf image in detail. For each distinct product or item visible:
+1. Identify the product/item type
+2. Count the exact number of units visible
+3. Note the condition (well-stocked, low stock, out of stock)
+4. Describe the arrangement/organization
+
+Provide a structured response with:
+- Total number of different product types
+- Individual product counts
+- Overall stock status assessment
+- Any items that need immediate attention`;
+
+    const result = await fal.subscribe("fal-ai/any-llm/vision", {
+      input: {
+        prompt: analysisPrompt,
+        image_url: imageUrl,
+        model: "google/gemini-flash-1.5",
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          console.log("Image analysis in progress...", update);
+        }
+      },
+    });
+
+    return result.data.output;
+  } catch (error) {
+    console.error("Image analysis error:", error);
+
+    if (error instanceof Error) {
+      throw new Error(`Failed to analyze image: ${error.message}`);
+    }
+
+    throw new Error("Failed to analyze image. Please try again.");
+  }
+}

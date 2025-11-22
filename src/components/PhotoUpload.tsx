@@ -1,11 +1,12 @@
 import { useState, useRef } from "react";
-import { Camera, Upload, X } from "lucide-react";
+import { Camera, Upload, X, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { analyzeImage } from "@/lib/fal-service";
 
 interface PhotoUploadProps {
   onUploadComplete: () => void;
@@ -16,6 +17,8 @@ export const PhotoUpload = ({ onUploadComplete }: PhotoUploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -78,10 +81,37 @@ export const PhotoUpload = ({ onUploadComplete }: PhotoUploadProps) => {
     }
   };
 
+  const handleAnalyze = async () => {
+    if (!file) return;
+
+    setAnalyzing(true);
+    setAnalysisResult(null);
+
+    try {
+      const result = await analyzeImage(file);
+      setAnalysisResult(result);
+
+      toast({
+        title: "Analysis Complete",
+        description: "AI has analyzed your inventory image",
+      });
+    } catch (error) {
+      console.error("Analysis error:", error);
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to analyze",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   const clearPreview = () => {
     setFile(null);
     setPreview(null);
     setDescription("");
+    setAnalysisResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -121,10 +151,22 @@ export const PhotoUpload = ({ onUploadComplete }: PhotoUploadProps) => {
               variant="destructive"
               className="absolute right-2 top-2"
               onClick={clearPreview}
+              disabled={uploading || analyzing}
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
+
+          {analysisResult && (
+            <Card className="p-4 bg-primary/5">
+              <h4 className="font-semibold mb-2 flex items-center gap-2 text-sm">
+                <Sparkles className="h-4 w-4" />
+                AI Analysis Results
+              </h4>
+              <p className="text-sm whitespace-pre-wrap">{analysisResult}</p>
+            </Card>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="description">Description (optional)</Label>
             <Input
@@ -132,16 +174,38 @@ export const PhotoUpload = ({ onUploadComplete }: PhotoUploadProps) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g., Morning inventory check"
+              disabled={uploading || analyzing}
             />
           </div>
-          <Button
-            onClick={handleUpload}
-            disabled={uploading}
-            className="w-full"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {uploading ? "Uploading..." : "Upload Photo"}
-          </Button>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAnalyze}
+              disabled={analyzing || uploading}
+              variant="outline"
+              className="flex-1"
+            >
+              {analyzing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Analyze with AI
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleUpload}
+              disabled={uploading || analyzing}
+              className="flex-1"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {uploading ? "Uploading..." : "Upload Photo"}
+            </Button>
+          </div>
         </div>
       )}
     </Card>

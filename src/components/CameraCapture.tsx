@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { analyzeVideo } from "@/lib/fal-service";
+import { analyzeVideo, analyzeImage } from "@/lib/fal-service";
 
 interface CameraCaptureProps {
   open: boolean;
@@ -161,16 +161,22 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
     try {
       const response = await fetch(mediaUrl);
       const blob = await response.blob();
-      const file = new File(
-        [blob], 
-        capturedPhotoUrl ? 'inventory-photo.jpg' : 'inventory-video.webm',
-        { type: capturedPhotoUrl ? 'image/jpeg' : 'video/webm' }
-      );
 
-      const result = await analyzeVideo(
-        file,
-        "Analyze this inventory shelf image. List all visible items, their approximate quantities, and note any items that appear to be running low or out of stock."
-      );
+      let result: string;
+
+      // Use appropriate analysis method based on media type
+      if (capturedPhotoUrl) {
+        // For photos, use the new image analysis with vision LLM
+        const file = new File([blob], 'inventory-photo.jpg', { type: 'image/jpeg' });
+        result = await analyzeImage(file);
+      } else {
+        // For videos, use the existing video understanding API
+        const file = new File([blob], 'inventory-video.webm', { type: 'video/webm' });
+        result = await analyzeVideo(
+          file,
+          "Analyze this inventory shelf video. List all visible items, their approximate quantities, and note any items that appear to be running low or out of stock."
+        );
+      }
 
       setAnalysisResult(result);
 
