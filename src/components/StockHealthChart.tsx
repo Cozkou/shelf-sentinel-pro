@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
@@ -104,17 +103,17 @@ export const StockHealthChart = () => {
 
   if (loading) {
     return (
-      <Card className="p-8 bg-gradient-to-br from-card to-accent/5 border-border/50 text-center">
+      <div className="p-8 text-center">
         <p className="text-sm text-muted-foreground">Loading stock data...</p>
-      </Card>
+      </div>
     );
   }
 
   if (itemsStock.length === 0) {
     return (
-      <Card className="p-8 bg-gradient-to-br from-card to-accent/5 border-border/50 text-center">
+      <div className="p-8 text-center">
         <p className="text-sm text-muted-foreground">No inventory data yet. Start by taking a photo!</p>
-      </Card>
+      </div>
     );
   }
 
@@ -126,13 +125,14 @@ export const StockHealthChart = () => {
   };
 
   return (
-    <Card className="p-4 md:p-6 bg-card/50 backdrop-blur-sm border border-border/50">
+    <div className="w-full">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
+        className="space-y-4 md:space-y-6"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-2 md:gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-3">
           <h3 className="text-base md:text-lg font-semibold text-foreground tracking-tight">
             Stock Levels
           </h3>
@@ -148,70 +148,72 @@ export const StockHealthChart = () => {
           </div>
         </div>
 
-      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full">
-        <ResponsiveContainer>
-          <BarChart
-            data={itemsStock}
-            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-            <XAxis
-              dataKey="itemName"
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              tickLine={false}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              tickLine={false}
-              domain={[0, MAX_STOCK]}
-            />
-
-            {/* Threshold lines */}
-            <ReferenceLine
-              y={MAX_STOCK}
-              stroke="rgb(239, 68, 68)"
-              strokeDasharray="3 3"
-              strokeWidth={1.5}
-              label={{ value: 'Max', position: 'right', fill: 'rgb(239, 68, 68)', fontSize: 10 }}
-            />
-            <ReferenceLine
-              y={REORDER_LEVEL}
-              stroke="rgb(234, 179, 8)"
-              strokeDasharray="3 3"
-              strokeWidth={1.5}
-              label={{ value: 'Reorder', position: 'right', fill: 'rgb(234, 179, 8)', fontSize: 10 }}
-            />
-
-            <Bar
-              dataKey="quantity"
-              radius={[4, 4, 0, 0]}
+      <div className="w-full flex justify-center">
+        <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full max-w-4xl">
+          <ResponsiveContainer>
+            <BarChart
+              data={itemsStock}
+              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
             >
-              {itemsStock.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={getBarColor(entry.quantity)} />
-              ))}
-            </Bar>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+              <XAxis
+                dataKey="itemName"
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickLine={false}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                tickLine={false}
+                domain={[0, MAX_STOCK]}
+              />
 
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  indicator="line"
-                  formatter={(value) => (
-                    <div className="font-medium">
-                      {value} units
-                    </div>
-                  )}
-                />
-              }
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartContainer>
+              {/* Threshold lines */}
+              <ReferenceLine
+                y={MAX_STOCK}
+                stroke="rgb(239, 68, 68)"
+                strokeDasharray="3 3"
+                strokeWidth={1.5}
+                label={{ value: 'Max', position: 'right', fill: 'rgb(239, 68, 68)', fontSize: 10 }}
+              />
+              <ReferenceLine
+                y={REORDER_LEVEL}
+                stroke="rgb(234, 179, 8)"
+                strokeDasharray="3 3"
+                strokeWidth={1.5}
+                label={{ value: 'Reorder', position: 'right', fill: 'rgb(234, 179, 8)', fontSize: 10 }}
+              />
+
+              <Bar
+                dataKey="quantity"
+                radius={[4, 4, 0, 0]}
+              >
+                {itemsStock.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={getBarColor(entry.quantity)} />
+                ))}
+              </Bar>
+
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    indicator="line"
+                    formatter={(value) => (
+                      <div className="font-medium">
+                        {value} units
+                      </div>
+                    )}
+                  />
+                }
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
 
       {/* Stock status indicators */}
-      <div className="mt-4 md:mt-6 space-y-2 md:space-y-3">
+      <div className="space-y-2 md:space-y-3">
         <AnimatePresence mode="popLayout">
           {itemsStock.map((item, index) => (
             <motion.div
@@ -280,6 +282,6 @@ export const StockHealthChart = () => {
         </AnimatePresence>
       </div>
       </motion.div>
-    </Card>
+    </div>
   );
 };
