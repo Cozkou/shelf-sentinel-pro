@@ -206,13 +206,21 @@ const Index = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-72 p-3 bg-background/95 backdrop-blur-xl border-border/50 shadow-lg z-[100] relative" 
+                  className="w-72 p-0 bg-card border-border shadow-lg z-[100] relative overflow-hidden" 
                   align="end"
                   sideOffset={12}
                 >
                   {/* Arrow pointer */}
-                  <div className="absolute -top-2 right-4 w-4 h-4 bg-background/95 border-t border-l border-border/50 rotate-45" />
-                  <div className="relative z-10">
+                  <div className="absolute -top-2 right-4 w-4 h-4 bg-muted border-t border-l border-border/50 rotate-45" />
+                  {/* Header with contrast */}
+                  <div className="relative z-10 bg-muted/50 backdrop-blur-sm px-3 py-2 border-b border-border/50">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+                      <span className="text-xs font-medium text-muted-foreground">Notification</span>
+                    </div>
+                  </div>
+                  {/* Content */}
+                  <div className="relative z-10 p-3 bg-card">
                     <StockAlert />
                   </div>
                 </PopoverContent>
