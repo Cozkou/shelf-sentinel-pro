@@ -89,50 +89,51 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 sm:py-5">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">
               Inventory Sentinel
             </h1>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm">
+              <LogOut className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-6 py-12">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-12">
         {/* Hero Section */}
-        <section className="mb-16 space-y-4">
-          <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl">
+        <section className="mb-8 space-y-3 sm:mb-16 sm:space-y-4">
+          <h2 className="text-2xl font-light tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             Predictive inventory management
           </h2>
-          <p className="max-w-2xl text-lg font-light text-muted-foreground">
+          <p className="max-w-2xl text-base font-light text-muted-foreground sm:text-lg">
             Voice-driven tracking that predicts shortages before they impact your business.
           </p>
         </section>
 
         {/* Action Cards */}
-        <section className="mb-16 grid gap-4 sm:grid-cols-2">
+        <section className="mb-8 grid gap-3 sm:mb-16 sm:grid-cols-2 sm:gap-4">
           <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
             <button 
               onClick={handleCameraCapture}
-              className="w-full p-8 text-left"
+              className="w-full p-5 text-left sm:p-8"
             >
-              <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
-                <Camera className="h-5 w-5 text-foreground" />
+              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary sm:mb-6 sm:h-12 sm:w-12">
+                <Camera className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
               </div>
-              <h3 className="mb-2 text-xl font-medium text-foreground">
+              <h3 className="mb-2 text-lg font-medium text-foreground sm:text-xl">
                 Photo Check-In
               </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-3 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
                 Daily shelf snapshots for automated tracking
               </p>
-              <div className="inline-flex items-center text-sm font-medium text-foreground transition-transform group-hover:translate-x-1">
+              <div className="inline-flex items-center text-xs font-medium text-foreground transition-transform group-hover:translate-x-1 sm:text-sm">
                 Start Capture
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-1.5 h-3 w-3 sm:ml-2 sm:h-4 sm:w-4" />
               </div>
             </button>
           </Card>
@@ -140,55 +141,55 @@ const Index = () => {
           <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
             <button 
               onClick={handleVoiceInput}
-              className="w-full p-8 text-left"
+              className="w-full p-5 text-left sm:p-8"
             >
-              <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
-                <Mic className="h-5 w-5 text-foreground" />
+              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary sm:mb-6 sm:h-12 sm:w-12">
+                <Mic className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
               </div>
-              <h3 className="mb-2 text-xl font-medium text-foreground">
+              <h3 className="mb-2 text-lg font-medium text-foreground sm:text-xl">
                 Voice Update
               </h3>
-              <p className="mb-4 text-sm text-muted-foreground">
+              <p className="mb-3 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
                 Quick verbal inventory notes and adjustments
               </p>
-              <div className="inline-flex items-center text-sm font-medium text-foreground transition-transform group-hover:translate-x-1">
+              <div className="inline-flex items-center text-xs font-medium text-foreground transition-transform group-hover:translate-x-1 sm:text-sm">
                 {isRecording ? "Stop Recording" : "Start Recording"}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-1.5 h-3 w-3 sm:ml-2 sm:h-4 sm:w-4" />
               </div>
             </button>
           </Card>
         </section>
 
         {/* Features Section */}
-        <section className="mb-16">
-          <div className="mb-8 flex items-center gap-3">
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+        <section className="mb-8 sm:mb-16">
+          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
+            <TrendingUp className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
               Intelligence Layer
             </h3>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-3">
-            <div className="space-y-2">
-              <div className="text-2xl font-light text-foreground">01</div>
-              <h4 className="font-medium text-foreground">Pattern Recognition</h4>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="text-xl font-light text-foreground sm:text-2xl">01</div>
+              <h4 className="text-sm font-medium text-foreground sm:text-base">Pattern Recognition</h4>
+              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
                 Agent analyzes daily check-ins to build accurate usage curves
               </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="text-2xl font-light text-foreground">02</div>
-              <h4 className="font-medium text-foreground">Shortage Prediction</h4>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="text-xl font-light text-foreground sm:text-2xl">02</div>
+              <h4 className="text-sm font-medium text-foreground sm:text-base">Shortage Prediction</h4>
+              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
                 Forecasts stockouts with day-level precision based on trends
               </p>
             </div>
 
-            <div className="space-y-2">
-              <div className="text-2xl font-light text-foreground">03</div>
-              <h4 className="font-medium text-foreground">Automated Ordering</h4>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+            <div className="space-y-1.5 sm:space-y-2">
+              <div className="text-xl font-light text-foreground sm:text-2xl">03</div>
+              <h4 className="text-sm font-medium text-foreground sm:text-base">Automated Ordering</h4>
+              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
                 Drafts orders, contacts suppliers, sends SMS approval requests
               </p>
             </div>
@@ -196,10 +197,10 @@ const Index = () => {
         </section>
 
         {/* Photo Upload Section */}
-        <section className="mb-16">
-          <div className="mb-8 flex items-center gap-3">
-            <Camera className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+        <section className="mb-8 sm:mb-16">
+          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
+            <Camera className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
               Upload Snapshot
             </h3>
           </div>
@@ -207,10 +208,10 @@ const Index = () => {
         </section>
 
         {/* Photo Archive Section */}
-        <section className="mb-16">
-          <div className="mb-8 flex items-center gap-3">
-            <Archive className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+        <section className="mb-8 sm:mb-16">
+          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
+            <Archive className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
               Photo Archive
             </h3>
           </div>
@@ -218,8 +219,8 @@ const Index = () => {
         </section>
 
         {/* Install CTA */}
-        <Card className="border border-border bg-secondary/30 p-8 text-center">
-          <p className="text-sm text-muted-foreground">
+        <Card className="border border-border bg-secondary/30 p-4 text-center sm:p-8">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             <span className="font-medium text-foreground">Mobile optimized.</span> Install to home screen for instant access.
           </p>
         </Card>
