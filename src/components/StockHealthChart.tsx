@@ -216,19 +216,6 @@ export const StockHealthChart = () => {
                   />
                 ))}
               </Bar>
-
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    indicator="line"
-                    formatter={(value) => (
-                      <div className="font-medium">
-                        {value} units
-                      </div>
-                    )}
-                  />
-                }
-              />
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
