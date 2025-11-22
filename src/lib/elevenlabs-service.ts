@@ -13,6 +13,19 @@ export interface AgentContext {
     decline_pct: number;
     days_until_out?: number;
   };
+  supplier_info?: {
+    supplier_name: string;
+    location: string;
+    reasoning: string;
+  };
+  order_details?: {
+    product_name: string;
+    quantity_needed: number;
+    price_per_unit: number;
+    total_cost: number;
+    supplier_name: string;
+    location: string;
+  };
   suppliers: Array<{
     name: string;
     contact: string;
