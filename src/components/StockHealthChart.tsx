@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ItemStock {
+  itemId: string;
   itemName: string;
   quantity: number;
 }
@@ -59,6 +63,7 @@ export const StockHealthChart = () => {
           const quantity = counts && counts.length > 0 ? counts[0].quantity : 0;
 
           return {
+            itemId: item.id,
             itemName: item.item_name,
             quantity,
           };
@@ -70,6 +75,23 @@ export const StockHealthChart = () => {
       console.error('Error fetching stock data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string, itemName: string) => {
+    try {
+      const { error } = await supabase
+        .from('inventory_items')
+        .delete()
+        .eq('id', itemId);
+
+      if (error) throw error;
+
+      toast.success(`${itemName} deleted successfully`);
+      fetchCurrentStock();
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast.error('Failed to delete item');
     }
   };
 
@@ -98,11 +120,11 @@ export const StockHealthChart = () => {
 
   return (
     <Card className="p-6 bg-gradient-to-br from-card to-accent/5 border-border/50">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          📊 Current Stock Levels
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
+        <h3 className="text-lg font-semibold text-foreground">
+          Current Stock Levels
         </h3>
-        <div className="flex gap-3 text-xs">
+        <div className="flex gap-2 sm:gap-3 text-xs flex-wrap">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10">
             <div className="w-2 h-2 rounded-full bg-red-500" />
             <span className="text-muted-foreground font-medium">Max: {MAX_STOCK}</span>
@@ -176,25 +198,35 @@ export const StockHealthChart = () => {
       {/* Stock status indicators */}
       <div className="mt-6 space-y-3">
         {itemsStock.map((item) => (
-          <div key={item.itemName} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/30">
-            <span className="font-medium text-foreground">{item.itemName}</span>
-            <div className="flex items-center gap-3">
+          <div key={item.itemId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/30">
+            <div className="flex items-center justify-between sm:justify-start gap-3 flex-1">
+              <span className="font-medium text-foreground">{item.itemName}</span>
               <span className="text-sm font-semibold text-foreground tabular-nums">{item.quantity} units</span>
+            </div>
+            <div className="flex items-center justify-between sm:justify-end gap-2">
               {item.quantity <= REORDER_LEVEL && (
-                <span className="text-xs font-medium bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                  ⚠️ Low Stock
+                <span className="text-xs font-medium bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full whitespace-nowrap">
+                  Low Stock
                 </span>
               )}
               {item.quantity > REORDER_LEVEL && item.quantity < MAX_STOCK && (
-                <span className="text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                  ✓ Good
+                <span className="text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-full whitespace-nowrap">
+                  Good
                 </span>
               )}
               {item.quantity >= MAX_STOCK && (
-                <span className="text-xs font-medium bg-blue-500/20 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                  📦 At Max
+                <span className="text-xs font-medium bg-blue-500/20 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full whitespace-nowrap">
+                  At Max
                 </span>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteItem(item.itemId, item.itemName)}
+                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         ))}
