@@ -2,3 +2,6 @@ project_id = "kbxopbekdhksufvvikhb"
 
 [functions.log-stock]
 verify_jwt = false
+
+[functions.search-suppliers]
+verify_jwt = false

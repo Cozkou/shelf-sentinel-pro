@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2, Phone } from "lucide-react";
-import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { SupplierSearchModal } from "./SupplierSearchModal";
 
 interface ItemStock {
   itemId: string;
@@ -20,6 +20,11 @@ const REORDER_LEVEL = 3;
 export const StockHealthChart = () => {
   const [itemsStock, setItemsStock] = useState<ItemStock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [searchLogs, setSearchLogs] = useState<any[]>([]);
+  const [bestDeal, setBestDeal] = useState<any>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
 
   useEffect(() => {
     fetchCurrentStock();
@@ -90,6 +95,33 @@ export const StockHealthChart = () => {
       fetchCurrentStock();
     } catch (error) {
       console.error('Error deleting item:', error);
+    }
+  };
+
+  const handleSearchSuppliers = async (itemName: string) => {
+    setSelectedProduct(itemName);
+    setSearchModalOpen(true);
+    setSearchLoading(true);
+    setSearchLogs([]);
+    setBestDeal(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('search-suppliers', {
+        body: { productName: itemName }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setSearchLogs(data.logs);
+        setBestDeal(data.bestDeal);
+      } else {
+        console.error('Search failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Error searching suppliers:', error);
+    } finally {
+      setSearchLoading(false);
     }
   };
 
@@ -199,19 +231,6 @@ export const StockHealthChart = () => {
                   />
                 ))}
               </Bar>
-
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    indicator="line"
-                    formatter={(value) => (
-                      <div className="font-medium">
-                        {value} units
-                      </div>
-                    )}
-                  />
-                }
-              />
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
@@ -246,7 +265,7 @@ export const StockHealthChart = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.2, delay: 0.1 }}
                     className="h-6 w-6 md:h-7 md:w-7 flex items-center justify-center rounded-full bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 transition-colors"
-                    onClick={() => {}}
+                    onClick={() => handleSearchSuppliers(item.itemName)}
                   >
                     <Phone className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   </motion.button>
@@ -286,6 +305,15 @@ export const StockHealthChart = () => {
         </AnimatePresence>
       </div>
       </motion.div>
+
+      <SupplierSearchModal
+        open={searchModalOpen}
+        onOpenChange={setSearchModalOpen}
+        logs={searchLogs}
+        bestDeal={bestDeal}
+        loading={searchLoading}
+        productName={selectedProduct}
+      />
     </div>
   );
 };
