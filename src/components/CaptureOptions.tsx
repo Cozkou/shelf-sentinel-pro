@@ -12,37 +12,47 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Invisible backdrop for clicks */}
       <div 
-        className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 animate-fade-in"
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
       
       {/* Buttons */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-4">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
         {/* Take Photo Button */}
-        <button
-          onClick={() => {
-            onTakePhoto();
-            onClose();
-          }}
-          className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl hover:shadow-2xl hover:scale-110 transition-all flex items-center justify-center animate-slide-up-curve"
+        <div
+          className="absolute bottom-16 left-8 flex items-center gap-3 animate-slide-up-curve"
           style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
         >
-          <Camera className="h-7 w-7" />
-        </button>
+          <button
+            onClick={() => {
+              onTakePhoto();
+              onClose();
+            }}
+            className="h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl hover:shadow-2xl hover:scale-110 transition-all flex items-center justify-center"
+          >
+            <Camera className="h-6 w-6" />
+          </button>
+          <span className="text-sm font-medium text-foreground whitespace-nowrap">Take Photo</span>
+        </div>
 
         {/* Upload Photo Button */}
-        <button
-          onClick={() => {
-            onUploadPhoto();
-            onClose();
-          }}
-          className="h-16 w-16 rounded-full bg-card border-2 border-border/50 hover:border-primary/50 text-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center animate-slide-up-curve"
+        <div
+          className="absolute bottom-4 left-16 flex items-center gap-3 animate-slide-up-curve"
           style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
         >
-          <Upload className="h-7 w-7 text-primary" />
-        </button>
+          <button
+            onClick={() => {
+              onUploadPhoto();
+              onClose();
+            }}
+            className="h-14 w-14 rounded-full bg-card border-2 border-border/50 hover:border-primary/50 text-foreground shadow-lg hover:shadow-xl hover:scale-110 transition-all flex items-center justify-center"
+          >
+            <Upload className="h-6 w-6 text-primary" />
+          </button>
+          <span className="text-sm font-medium text-foreground whitespace-nowrap">Upload Photo</span>
+        </div>
       </div>
     </>
   );
