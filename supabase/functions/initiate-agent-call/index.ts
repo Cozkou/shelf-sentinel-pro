@@ -26,36 +26,22 @@ serve(async (req) => {
     }
 
     console.log('Initiating call with customerName:', customerName, 'orderDetails:', orderDetails);
-
-    // Build conversation starter message with customerName and orderDetails
-    const conversationStarter = `Hello, I'm calling on behalf of ${customerName} regarding an order for ${orderDetails}. Can you help me with this?`;
-
-    console.log('Conversation Starter:', conversationStarter);
     console.log('Calling ElevenLabs API with agent:', ELEVENLABS_AGENT_ID);
     console.log('Phone Number ID:', ELEVENLABS_PHONE_ID);
 
     // Initiate outbound call via ElevenLabs Twilio integration
-    // 
-    // IMPORTANT: The agent must be pre-configured in the ElevenLabs dashboard with:
-    // 1. Appropriate instructions/prompt for procurement calls
-    // 2. The agent should be assigned to the phone number (ELEVENLABS_PHONE_ID)
-    // 3. The phone number must be imported from Twilio in the ElevenLabs dashboard
-    //
-    // The conversation_starter parameter may or may not be supported depending on API version.
-    // If the API rejects it, remove it and ensure the agent is properly configured in the dashboard.
+    // Pass dynamic variables in the correct ElevenLabs format
     const requestBody: any = {
       agent_id: ELEVENLABS_AGENT_ID,
       agent_phone_number_id: ELEVENLABS_PHONE_ID,
-      customerName: customerName,
-      orderDetails: orderDetails,
+      // Pass dynamic variables using variableValues for proper injection in agent's first message
+      agent: {
+        variableValues: {
+          customerName: customerName,
+          orderDetails: orderDetails,
+        }
+      }
     };
-
-    // Pass customerName and orderDetails as parameters
-    // These will be used in the first message/conversation starter
-    // Try to pass conversation starter if API supports it
-    // If you get an error about unsupported parameters, remove this line
-    // and ensure the agent instructions are set in the ElevenLabs dashboard
-    requestBody.conversation_starter = conversationStarter;
     
     // Alternative parameter names that might be supported (uncomment to try):
     // requestBody.initial_message = conversationStarter;

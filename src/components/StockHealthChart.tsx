@@ -257,10 +257,13 @@ export const StockHealthChart = () => {
     });
 
     try {
+      const item = itemsStock.find(i => i.itemName === itemName);
+      const quantityNeeded = item ? Math.max(1, REORDER_LEVEL - item.quantity + 1) : 2;
+      
       const { data: callData, error: callError } = await supabase.functions.invoke('initiate-agent-call', {
         body: {
-          customerName: "Bugatt",
-          orderDetails: "3 green veed pillows",
+          customerName: bestDeal.supplier_name,
+          orderDetails: `${quantityNeeded} units of ${bestDeal.product_name}`,
         }
       });
 
