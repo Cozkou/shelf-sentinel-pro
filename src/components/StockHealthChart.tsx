@@ -93,6 +93,11 @@ export const StockHealthChart = () => {
     }
   };
 
+  const shortenName = (name: string, maxLength: number = 12) => {
+    if (name.length <= maxLength) return name;
+    return name.substring(0, maxLength) + '...';
+  };
+
   const getBarColor = (quantity: number) => {
     if (quantity <= REORDER_LEVEL) return 'rgb(234, 179, 8)'; // yellow for low stock
     if (quantity >= MAX_STOCK) return 'rgb(59, 130, 246)'; // blue for max stock
@@ -149,12 +154,12 @@ export const StockHealthChart = () => {
       <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full px-1 md:px-0">
         <ResponsiveContainer>
           <BarChart
-            data={itemsStock}
+            data={itemsStock.map(item => ({ ...item, shortName: shortenName(item.itemName) }))}
             margin={{ top: 10, right: 5, left: -25, bottom: 20 }}
           >
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis
-                dataKey="itemName"
+                dataKey="shortName"
                 tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 tickLine={false}
                 angle={-45}
@@ -240,7 +245,7 @@ export const StockHealthChart = () => {
               transition={{ duration: 0.3, delay: index * 0.05 }}
               className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-md bg-card/30 hover:bg-card/50 transition-all border border-border/30 hover:border-primary/30"
             >
-              <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
+              <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{shortenName(item.itemName, 20)}</span>
               {item.quantity <= REORDER_LEVEL && (
                 <div className="flex items-center gap-1.5">
                   <motion.span
