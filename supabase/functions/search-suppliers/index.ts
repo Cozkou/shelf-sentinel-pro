@@ -57,31 +57,52 @@ serve(async (req) => {
 
     const logs: Array<{ step: string; output: any; timestamp: string }> = [];
 
-    // Step A: Search for suppliers
+    // Step A: Search for suppliers (simplified query to avoid timeouts)
     console.log(`[Step A] Searching for ${productName} suppliers...`);
     logs.push({
       step: 'Step A: Initial Search',
-      output: `Searching for ${productName} wholesale suppliers in UK...`,
+      output: `Searching for ${productName} wholesale suppliers...`,
       timestamp: new Date().toISOString()
     });
 
-    const searchResponse = await fetch('https://api.valyu.ai/v1/answer', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': VALYU_API_KEY,
-      },
-      body: JSON.stringify({
-        query: `${productName} wholesale suppliers UK with contact information phone numbers`,
-        search_type: 'web',
-        max_num_results: 5,
-        response_length: 'short',
-      }),
-      signal: AbortSignal.timeout(45000),
-    });
+    // Retry logic for Valyu API (handles 504 timeouts)
+    let searchResponse;
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        console.log(`Valyu API attempt ${attempt}/2`);
+        searchResponse = await fetch('https://api.valyu.ai/v1/answer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': VALYU_API_KEY,
+          },
+          body: JSON.stringify({
+            query: `${productName} wholesale suppliers UK`,
+            search_type: 'web',
+            max_num_results: 3,
+            response_length: 'short',
+          }),
+          signal: AbortSignal.timeout(30000),
+        });
 
-    if (!searchResponse.ok) {
-      throw new Error(`Valyu API error: ${searchResponse.status}`);
+        if (searchResponse.ok) break;
+        lastError = `Status ${searchResponse.status}`;
+        if (attempt < 2 && searchResponse.status >= 500) {
+          console.log(`Retrying after ${searchResponse.status}...`);
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      } catch (e) {
+        lastError = e instanceof Error ? e.message : 'Unknown error';
+        if (attempt < 2) {
+          console.log(`Retrying after error: ${lastError}`);
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+    }
+
+    if (!searchResponse || !searchResponse.ok) {
+      throw new Error(`Valyu API failed: ${lastError}`);
     }
 
     const searchData = await searchResponse.json();
