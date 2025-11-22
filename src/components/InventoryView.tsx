@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BarChart3, Camera } from "lucide-react";
 import { StockHealthChart } from "./StockHealthChart";
 import { SimplePhotoCapture } from "./SimplePhotoCapture";
+import { motion } from "framer-motion";
 
 interface InventoryViewProps {
   onPhotoSaved?: () => void;
@@ -13,8 +14,15 @@ export const InventoryView = ({ onPhotoSaved }: InventoryViewProps) => {
   return (
     <div className="space-y-4">
       {/* Toggle Buttons */}
-      <div className="flex gap-2">
-        <button
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex gap-2"
+      >
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setActiveView('graph')}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
             activeView === 'graph'
@@ -24,9 +32,11 @@ export const InventoryView = ({ onPhotoSaved }: InventoryViewProps) => {
         >
           <BarChart3 className="h-4 w-4" />
           <span className="text-sm font-medium">Charts</span>
-        </button>
+        </motion.button>
         
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setActiveView('camera')}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
             activeView === 'camera'
@@ -36,17 +46,23 @@ export const InventoryView = ({ onPhotoSaved }: InventoryViewProps) => {
         >
           <Camera className="h-4 w-4" />
           <span className="text-sm font-medium">Capture</span>
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Content */}
-      <div className="animate-fade-in">
+      <motion.div
+        key={activeView}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3 }}
+      >
         {activeView === 'graph' ? (
           <StockHealthChart />
         ) : (
           <SimplePhotoCapture onPhotoSaved={onPhotoSaved} />
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };
