@@ -8,18 +8,18 @@ import { AuthForm } from "@/components/AuthForm";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
-import { SimplePhotoCapture } from "@/components/SimplePhotoCapture";
 import { OrdersSection } from "@/components/OrdersSection";
 import { BottomNav } from "@/components/BottomNav";
 import { CaptureOptions } from "@/components/CaptureOptions";
+import CameraCapture from "@/components/CameraCapture";
 
 const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
   const [activeTab, setActiveTab] = useState<'charts' | 'archive'>('charts');
-  const captureInputRef = useState<HTMLInputElement | null>(null)[0];
   const [isCaptureOptionsOpen, setIsCaptureOptionsOpen] = useState(false);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -48,12 +48,7 @@ const Index = () => {
   };
 
   const handleTakePhoto = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.capture = 'environment' as any;
-    input.onchange = (e: any) => processPhoto(e.target?.files?.[0]);
-    input.click();
+    setIsCameraOpen(true);
   };
 
   const handleUploadPhoto = () => {
@@ -264,6 +259,16 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} onCaptureClick={handleCaptureClick} />
+
+      {/* Camera Capture Modal */}
+      <CameraCapture
+        open={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onPhotoSaved={() => {
+          setRefreshPhotos(prev => prev + 1);
+          setActiveTab('archive');
+        }}
+      />
 
       {/* Capture Options Modal */}
       <CaptureOptions
