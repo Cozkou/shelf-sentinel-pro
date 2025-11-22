@@ -12,12 +12,14 @@ import { PredictionsTimeline } from "@/components/PredictionsTimeline";
 import { QuickActions } from "@/components/QuickActions";
 import { AgentActivityFeed } from "@/components/AgentActivityFeed";
 import { OrdersSection } from "@/components/OrdersSection";
+import CameraCapture from "@/components/CameraCapture";
 
 const Index = () => {
   const { toast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,25 +35,8 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleCameraCapture = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      toast({
-        title: "Camera Ready",
-        description: "Snap a photo of your inventory shelf",
-      });
-      
-      stream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      toast({
-        title: "Camera Access Denied",
-        description: "Please allow camera access to capture inventory photos",
-        variant: "destructive",
-      });
-    }
+  const handleCameraCapture = () => {
+    setIsCameraOpen(true);
   };
 
   const handleVoiceInput = async () => {
@@ -155,6 +140,12 @@ const Index = () => {
           <PhotoArchive refreshTrigger={refreshPhotos} />
         </section>
       </main>
+
+      {/* Camera Dialog */}
+      <CameraCapture
+        open={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+      />
     </div>
   );
 };
