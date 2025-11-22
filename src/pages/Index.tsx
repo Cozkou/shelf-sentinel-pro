@@ -115,6 +115,7 @@ const Index = () => {
       <CameraCapture
         open={isCameraOpen}
         onClose={() => setIsCameraOpen(false)}
+        onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)}
       />
     </div>
   );

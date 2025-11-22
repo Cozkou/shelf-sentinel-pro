@@ -110,17 +110,21 @@ export async function analyzeImage(
     console.log("Uploaded image to:", imageUrl);
 
     const analysisPrompt = prompt ||
-      `Analyze this inventory shelf image in detail. For each distinct product or item visible:
-1. Identify the product/item type
-2. Count the exact number of units visible
-3. Note the condition (well-stocked, low stock, out of stock)
-4. Describe the arrangement/organization
+      `Analyze this inventory shelf image. For each distinct product or item visible, provide:
+1. Item name or description
+2. Exact count of units visible
 
-Provide a structured response with:
-- Total number of different product types
-- Individual product counts
-- Overall stock status assessment
-- Any items that need immediate attention`;
+Format your response as a numbered list with this EXACT format:
+1. [Quantity]x [Item Name]
+2. [Quantity]x [Item Name]
+3. [Quantity]x [Item Name]
+
+Example:
+1. 12x Coca Cola Cans
+2. 8x Potato Chips Bags
+3. 15x Water Bottles
+
+Be precise with counts. If you cannot determine the exact count, provide your best estimate.`;
 
     // Use fal.ai's vision LLM (Google Gemini Flash) for image analysis
     const result = await fal.subscribe("fal-ai/any-llm/vision", {
@@ -161,17 +165,21 @@ export async function analyzeImageFromUrl(
 ): Promise<string> {
   try {
     const analysisPrompt = prompt ||
-      `Analyze this inventory shelf image in detail. For each distinct product or item visible:
-1. Identify the product/item type
-2. Count the exact number of units visible
-3. Note the condition (well-stocked, low stock, out of stock)
-4. Describe the arrangement/organization
+      `Analyze this inventory shelf image. For each distinct product or item visible, provide:
+1. Item name or description
+2. Exact count of units visible
 
-Provide a structured response with:
-- Total number of different product types
-- Individual product counts
-- Overall stock status assessment
-- Any items that need immediate attention`;
+Format your response as a numbered list with this EXACT format:
+1. [Quantity]x [Item Name]
+2. [Quantity]x [Item Name]
+3. [Quantity]x [Item Name]
+
+Example:
+1. 12x Coca Cola Cans
+2. 8x Potato Chips Bags
+3. 15x Water Bottles
+
+Be precise with counts. If you cannot determine the exact count, provide your best estimate.`;
 
     const result = await fal.subscribe("fal-ai/any-llm/vision", {
       input: {

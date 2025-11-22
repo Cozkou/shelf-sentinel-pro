@@ -14,8 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      inventory_counts: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          photo_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          photo_id: string
+          quantity: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          photo_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_counts_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_photos: {
         Row: {
+          analysis_data: Json | null
           created_at: string
           description: string | null
           id: string
@@ -24,6 +88,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analysis_data?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -32,6 +97,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analysis_data?: Json | null
           created_at?: string
           description?: string | null
           id?: string

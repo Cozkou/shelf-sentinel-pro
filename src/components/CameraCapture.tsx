@@ -5,13 +5,15 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { analyzeVideo, analyzeImage } from "@/lib/fal-service";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CameraCaptureProps {
   open: boolean;
   onClose: () => void;
+  onPhotoSaved?: () => void;
 }
 
-const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
+const CameraCapture = ({ open, onClose, onPhotoSaved }: CameraCaptureProps) => {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -151,6 +153,168 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
     }, 'image/jpeg', 0.95);
   };
 
+  const parseInventoryItems = (analysisText: string): { name: string; quantity: number }[] => {
+    const items: { name: string; quantity: number }[] = [];
+    const lines = analysisText.split('\n');
+    
+    for (const line of lines) {
+      // Match patterns like "10x Product Name" or "Product Name: 10" or "Product Name (10)"
+      const patterns = [
+        /(\d+)\s*x\s*(.+)/i,  // 10x Product
+        /(.+?):\s*(\d+)/,      // Product: 10
+        /(.+?)\s*\((\d+)\)/,   // Product (10)
+        /(\d+)\s+(.+)/,        // 10 Product
+      ];
+      
+      for (const pattern of patterns) {
+        const match = line.match(pattern);
+        if (match) {
+          let name: string;
+          let quantity: number;
+          
+          if (pattern.source.startsWith('(\\d+)')) {
+            // Quantity comes first
+            quantity = parseInt(match[1]);
+            name = match[2].trim();
+          } else {
+            // Name comes first
+            name = match[1].trim();
+            quantity = parseInt(match[2]);
+          }
+          
+          if (name && !isNaN(quantity) && quantity > 0) {
+            items.push({ name, quantity });
+            break;
+          }
+        }
+      }
+    }
+    
+    return items;
+  };
+
+  const saveToDatabase = async (blob: Blob, analysis: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Upload to storage
+      const fileExt = capturedPhotoUrl ? 'jpg' : 'webm';
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('inventory-photos')
+        .upload(fileName, blob);
+
+      if (uploadError) throw uploadError;
+
+      // Parse inventory items from analysis
+      const parsedItems = parseInventoryItems(analysis);
+
+      // Save photo record with analysis data
+      const { data: photoData, error: photoError } = await supabase
+        .from('inventory_photos')
+        .insert({
+          user_id: user.id,
+          storage_path: fileName,
+          description: 'AI analyzed inventory snapshot',
+          analysis_data: { items: parsedItems, raw: analysis },
+        })
+        .select()
+        .single();
+
+      if (photoError) throw photoError;
+
+      // Save inventory items and counts
+      for (const item of parsedItems) {
+        // Insert or get existing item
+        const { data: itemData, error: itemError } = await supabase
+          .from('inventory_items')
+          .upsert(
+            { user_id: user.id, item_name: item.name },
+            { onConflict: 'user_id,item_name' }
+          )
+          .select()
+          .single();
+
+        if (itemError) throw itemError;
+
+        // Save count for this photo
+        const { error: countError } = await supabase
+          .from('inventory_counts')
+          .insert({
+            item_id: itemData.id,
+            photo_id: photoData.id,
+            quantity: item.quantity,
+          });
+
+        if (countError) throw countError;
+      }
+
+      // Check for declining stock
+      await checkForDecliningStock(user.id, parsedItems);
+
+      toast({
+        title: "Saved Successfully",
+        description: `Photo and ${parsedItems.length} items saved to archive`,
+      });
+
+      onPhotoSaved?.();
+      handleClose();
+    } catch (error) {
+      console.error("Save error:", error);
+      toast({
+        title: "Save Failed",
+        description: error instanceof Error ? error.message : "Failed to save",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const checkForDecliningStock = async (userId: string, currentItems: { name: string; quantity: number }[]) => {
+    try {
+      // Get items from the last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      for (const currentItem of currentItems) {
+        const { data: itemData } = await supabase
+          .from('inventory_items')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('item_name', currentItem.name)
+          .single();
+
+        if (!itemData) continue;
+
+        // Get previous counts for this item
+        const { data: previousCounts } = await supabase
+          .from('inventory_counts')
+          .select('quantity, created_at')
+          .eq('item_id', itemData.id)
+          .gte('created_at', sevenDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (previousCounts && previousCounts.length >= 2) {
+          const averagePrevious = previousCounts.reduce((sum, c) => sum + c.quantity, 0) / previousCounts.length;
+          const decline = ((averagePrevious - currentItem.quantity) / averagePrevious) * 100;
+
+          // Alert if stock declined by more than 30%
+          if (decline > 30) {
+            toast({
+              title: "⚠️ Stock Alert",
+              description: `${currentItem.name} is running low: ${currentItem.quantity} (down ${Math.round(decline)}%)`,
+              variant: "destructive",
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking stock:", error);
+    }
+  };
+
   const handleAnalyze = async () => {
     const mediaUrl = capturedPhotoUrl || recordedVideoUrl;
     if (!mediaUrl) return;
@@ -166,11 +330,9 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
 
       // Use appropriate analysis method based on media type
       if (capturedPhotoUrl) {
-        // For photos, use the new image analysis with vision LLM
         const file = new File([blob], 'inventory-photo.jpg', { type: 'image/jpeg' });
         result = await analyzeImage(file);
       } else {
-        // For videos, use the existing video understanding API
         const file = new File([blob], 'inventory-video.webm', { type: 'video/webm' });
         result = await analyzeVideo(
           file,
@@ -182,8 +344,11 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
 
       toast({
         title: "Analysis Complete",
-        description: "AI has analyzed your inventory",
+        description: "Review results or save to archive",
       });
+
+      // Automatically save to database
+      await saveToDatabase(blob, result);
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
