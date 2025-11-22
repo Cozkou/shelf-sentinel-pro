@@ -206,36 +206,19 @@ export const SimplePhotoCapture = ({ onPhotoSaved }: SimplePhotoCaptureProps) =>
         <button 
           onClick={handleClick}
           disabled={isProcessing}
-          className="w-full p-5 sm:p-6 text-left disabled:cursor-not-allowed"
+          className="w-full p-8 sm:p-10 text-center disabled:cursor-not-allowed"
         >
-          <div className="mb-4 sm:mb-5">
-            {isProcessing ? (
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 sm:h-14 sm:w-14">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <div className="inline-flex h-12 w-12 items-center justify-center sm:h-14 sm:w-14">
-                <div className="relative">
-                  {/* Outer ring */}
-                  <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse" />
-                  {/* Middle ring */}
-                  <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-full border-[3px] border-primary bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
-                    {/* Inner circle */}
-                    <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-gradient-to-br from-primary to-primary/70" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <h3 className="mb-2 text-base font-semibold text-foreground sm:text-lg">
-            {isProcessing ? "Processing..." : "Capture Photo"}
+          {isProcessing && (
+            <div className="mb-4 flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          )}
+          <h3 className="mb-2 text-xl font-semibold text-foreground sm:text-2xl">
+            {isProcessing ? "Processing..." : "Take Photo"}
           </h3>
-          <p className="mb-3 text-xs text-muted-foreground sm:text-sm sm:mb-4">
-            {isProcessing ? "Analyzing inventory with AI..." : "Take inventory snapshot with AI analysis"}
+          <p className="text-sm text-muted-foreground sm:text-base">
+            {isProcessing ? "Analyzing inventory with AI..." : "Capture inventory snapshot with AI analysis"}
           </p>
-          <div className="inline-flex items-center text-sm font-medium text-primary transition-transform group-hover:translate-x-1">
-            {isProcessing ? "Please wait" : "Take Photo"}
-          </div>
         </button>
       </Card>
     </>
