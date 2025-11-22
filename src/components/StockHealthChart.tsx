@@ -4,7 +4,7 @@ import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2, Phone } from "lucide-react";
+import { Trash2, Phone, PhoneCall } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SupplierSearchModal } from "./SupplierSearchModal";
 import { ProductDetailModal } from "./ProductDetailModal";
@@ -359,8 +359,40 @@ export const StockHealthChart = () => {
     },
   };
 
+  const handleManualCall = async () => {
+    // Find first low-stock item with cached supplier
+    const lowStockItem = itemsStock.find(
+      item => item.quantity <= REORDER_LEVEL && supplierCache[item.itemName]
+    );
+
+    if (!lowStockItem) {
+      toast({
+        title: "No Items Ready",
+        description: "Search for suppliers on low-stock items first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const supplier = supplierCache[lowStockItem.itemName];
+    await initiateVoiceAgent(lowStockItem.itemName, supplier);
+  };
+
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Manual Call Trigger Button */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={handleManualCall}
+        className="fixed bottom-4 left-4 z-50 h-10 w-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg flex items-center justify-center"
+        title="Trigger Agent Call"
+      >
+        <PhoneCall className="h-5 w-5" />
+      </motion.button>
+
       {/* Activity Feed */}
       <ActivityFeed activities={activities} />
 
