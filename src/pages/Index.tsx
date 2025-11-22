@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
@@ -14,6 +15,7 @@ const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -54,20 +56,27 @@ const Index = () => {
             <h1 className="text-xl font-bold tracking-tight font-space-grotesk sm:text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               MyStock
             </h1>
-            <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => setIsAlertOpen(true)} 
+                className="hover:bg-accent/50 rounded-full relative"
+              >
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+                {/* Notification dot */}
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </div>
           </div>
         </header>
       </div>
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 pb-8 sm:px-6">
-        {/* Top Alert */}
-        <section className="mb-6 sm:mb-8">
-          <StockAlert />
-        </section>
-
         {/* Inventory View - Charts & Capture */}
         <section className="mb-6 sm:mb-8">
           <InventoryView onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)} />
@@ -87,6 +96,21 @@ const Index = () => {
           <PhotoArchive refreshTrigger={refreshPhotos} />
         </section>
       </main>
+
+      {/* Alert Notification Dialog */}
+      <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Bell className="h-5 w-5" />
+              Stock Alerts
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <StockAlert />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
