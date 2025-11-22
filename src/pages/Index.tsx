@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
@@ -17,7 +17,6 @@ const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'charts' | 'archive'>('charts');
   const captureInputRef = useState<HTMLInputElement | null>(null)[0];
   const [isCaptureOptionsOpen, setIsCaptureOptionsOpen] = useState(false);
@@ -194,16 +193,35 @@ const Index = () => {
               MyStock
             </h1>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setIsAlertOpen(true)} 
-                className="hover:bg-accent/50 rounded-full relative"
-              >
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                {/* Notification dot */}
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="hover:bg-accent/50 rounded-full relative"
+                  >
+                    <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+                    {/* Notification dot */}
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-80 sm:w-96 p-0 bg-background border-border shadow-2xl z-[100]" 
+                  align="end"
+                  sideOffset={8}
+                >
+                  <div className="border-b border-border px-4 py-3 bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Bell className="h-4 w-4 text-destructive" />
+                      <h3 className="font-semibold text-sm">Stock Alerts</h3>
+                      <span className="ml-auto text-xs bg-destructive/20 text-destructive px-2 py-1 rounded-full font-medium">1 Alert</span>
+                    </div>
+                  </div>
+                  <div className="p-3 space-y-2 max-h-[400px] overflow-y-auto">
+                    <StockAlert />
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
                 <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
@@ -252,20 +270,6 @@ const Index = () => {
         onUploadPhoto={handleUploadPhoto}
       />
 
-      {/* Alert Notification Dialog */}
-      <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <Bell className="h-5 w-5" />
-              Stock Alerts
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <StockAlert />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
