@@ -13,13 +13,16 @@ serve(async (req) => {
   try {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
-    const ELEVENLABS_PHONE_ID = Deno.env.get('ELEVENLABS_PHONE_ID');
 
-    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !ELEVENLABS_PHONE_ID) {
+    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID) {
       throw new Error('ElevenLabs credentials not configured');
     }
 
-    const { supplier_info, order_details } = await req.json();
+    const { supplier_info, order_details, phone_number } = await req.json();
+
+    if (!phone_number) {
+      throw new Error('Supplier phone number is required');
+    }
 
     // Build the agent context/prompt with order details
     const agentPrompt = `You are a procurement assistant making an order call. 
@@ -40,22 +43,16 @@ Your task is to:
 2. Verify pricing and delivery timeline
 3. Place the order if terms are acceptable`;
 
-    // Initiate phone call via ElevenLabs with supplier phone number
-    const response = await fetch(`https://api.elevenlabs.io/v1/convai/conversation?agent_id=${ELEVENLABS_AGENT_ID}`, {
+    // Initiate outbound call via ElevenLabs Twilio integration
+    const response = await fetch('https://api.elevenlabs.io/v1/twilio/outbound-call', {
       method: 'POST',
       headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
+        'Authorization': `Bearer ${ELEVENLABS_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         agent_id: ELEVENLABS_AGENT_ID,
-        phone_number_id: ELEVENLABS_PHONE_ID,
-        prompt: agentPrompt,
-        metadata: {
-          order_id: `order_${Date.now()}`,
-          product: order_details.product_name,
-          supplier: supplier_info.supplier_name,
-        }
+        to_phone_number: phone_number, // Must be in E.164 format (e.g., +11234567890)
       }),
     });
 
