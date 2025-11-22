@@ -4,20 +4,17 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
-import { PhotoUpload } from "@/components/PhotoUpload";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
-import { QuickActions } from "@/components/QuickActions";
+import { SimplePhotoCapture } from "@/components/SimplePhotoCapture";
 import { AgentChatbox } from "@/components/AgentChatbox";
 import { OrdersSection } from "@/components/OrdersSection";
-import CameraCapture from "@/components/CameraCapture";
 
 const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -32,11 +29,6 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const handleCameraCapture = () => {
-    setIsCameraOpen(true);
-  };
-
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -87,9 +79,7 @@ const Index = () => {
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
             Quick Actions
           </h3>
-          <QuickActions 
-            onCameraCapture={handleCameraCapture}
-          />
+          <SimplePhotoCapture onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)} />
         </section>
 
         {/* Agent Chat & Orders */}
@@ -106,13 +96,6 @@ const Index = () => {
           <PhotoArchive refreshTrigger={refreshPhotos} />
         </section>
       </main>
-
-      {/* Camera Dialog */}
-      <CameraCapture
-        open={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
-        onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)}
-      />
     </div>
   );
 };
