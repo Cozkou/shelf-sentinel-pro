@@ -7,15 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
-import { InventoryView } from "@/components/InventoryView";
-import { AgentChatbox } from "@/components/AgentChatbox";
+import { StockHealthChart } from "@/components/StockHealthChart";
+import { SimplePhotoCapture } from "@/components/SimplePhotoCapture";
 import { OrdersSection } from "@/components/OrdersSection";
+import { BottomNav } from "@/components/BottomNav";
 
 const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'charts' | 'capture' | 'archive'>('charts');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -76,26 +78,46 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 pb-8 sm:px-6">
-        {/* Inventory View - Charts & Capture */}
-        <section className="mb-6 sm:mb-8">
-          <InventoryView onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)} />
-        </section>
+      <main className="mx-auto max-w-7xl px-4 pt-24 sm:pt-28 pb-24 sm:px-6">
+        {/* Charts Tab */}
+        {activeTab === 'charts' && (
+          <div className="space-y-6 animate-fade-in">
+            <StockHealthChart />
+          </div>
+        )}
 
-        {/* Agent Chat & Orders */}
-        <section className="mb-6 sm:mb-8 grid gap-4 sm:gap-6 sm:grid-cols-2">
-          <AgentChatbox />
-          <OrdersSection />
-        </section>
+        {/* Capture Tab */}
+        {activeTab === 'capture' && (
+          <div className="space-y-6 animate-fade-in">
+            <SimplePhotoCapture onPhotoSaved={() => {
+              setRefreshPhotos(prev => prev + 1);
+              setActiveTab('archive');
+            }} />
+          </div>
+        )}
 
-        {/* Photo Archive Section */}
-        <section className="mb-6 sm:mb-8">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
-            Photo Archive
-          </h3>
-          <PhotoArchive refreshTrigger={refreshPhotos} />
-        </section>
+        {/* Archive Tab */}
+        {activeTab === 'archive' && (
+          <div className="space-y-6 sm:space-y-8 animate-fade-in">
+            <section>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
+                Recent Orders
+              </h3>
+              <OrdersSection />
+            </section>
+            
+            <section>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
+                Photo Archive
+              </h3>
+              <PhotoArchive refreshTrigger={refreshPhotos} />
+            </section>
+          </div>
+        )}
       </main>
+
+      {/* Bottom Navigation */}
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Alert Notification Dialog */}
       <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
