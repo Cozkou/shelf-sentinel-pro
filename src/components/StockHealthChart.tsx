@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
@@ -8,12 +8,21 @@ import { Trash2, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SupplierSearchModal } from "./SupplierSearchModal";
 import { ProductDetailModal } from "./ProductDetailModal";
+import { ActivityFeed } from "./ActivityFeed";
 import { useToast } from "@/hooks/use-toast";
 
 interface ItemStock {
   itemId: string;
   itemName: string;
   quantity: number;
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'trigger' | 'searching' | 'found' | 'calling' | 'error';
+  message: string;
+  timestamp: Date;
+  itemName?: string;
 }
 
 const MAX_STOCK = 5;
@@ -30,15 +39,57 @@ export const StockHealthChart = () => {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItemStock | null>(null);
   const [supplierCache, setSupplierCache] = useState<Record<string, any>>({});
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [autoTriggeredItems, setAutoTriggeredItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const autoTriggerTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchCurrentStock();
 
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchCurrentStock, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (autoTriggerTimeoutRef.current) {
+        clearTimeout(autoTriggerTimeoutRef.current);
+      }
+    };
   }, []);
+
+  // Auto-trigger supplier search for low stock items
+  useEffect(() => {
+    if (loading || itemsStock.length === 0) return;
+
+    // Find items that need reordering and haven't been auto-triggered yet
+    const lowStockItems = itemsStock.filter(
+      item => item.quantity <= REORDER_LEVEL && !autoTriggeredItems.has(item.itemId)
+    );
+
+    if (lowStockItems.length > 0) {
+      // Trigger search for the first low stock item after a short delay
+      autoTriggerTimeoutRef.current = setTimeout(() => {
+        const item = lowStockItems[0];
+        addActivity({
+          id: `trigger-${item.itemId}-${Date.now()}`,
+          type: 'trigger',
+          message: `Stock below reorder level (${item.quantity}/${REORDER_LEVEL}). Auto-triggering supplier search...`,
+          timestamp: new Date(),
+          itemName: item.itemName,
+        });
+
+        // Mark as triggered
+        setAutoTriggeredItems(prev => new Set(prev).add(item.itemId));
+
+        // Trigger search automatically
+        handleSearchSuppliers(item.itemName, true);
+      }, 2000);
+    }
+  }, [itemsStock, loading]);
+
+  const addActivity = (activity: ActivityItem) => {
+    setActivities(prev => [...prev, activity]);
+  };
 
   const fetchCurrentStock = async () => {
     try {
@@ -104,14 +155,16 @@ export const StockHealthChart = () => {
     }
   };
 
-  const handleSearchSuppliers = async (itemName: string) => {
+  const handleSearchSuppliers = async (itemName: string, isAutoTriggered = false) => {
     // Check cache first
     if (supplierCache[itemName]) {
       setBestDeal(supplierCache[itemName]);
-      toast({
-        title: "Cached Result",
-        description: "Showing previously found supplier",
-      });
+      if (!isAutoTriggered) {
+        toast({
+          title: "Cached Result",
+          description: "Showing previously found supplier",
+        });
+      }
       return;
     }
 
@@ -120,6 +173,14 @@ export const StockHealthChart = () => {
     setSearchLoading(true);
     setSearchLogs([]);
     setBestDeal(null);
+
+    addActivity({
+      id: `search-${itemName}-${Date.now()}`,
+      type: 'searching',
+      message: 'Searching for suppliers...',
+      timestamp: new Date(),
+      itemName,
+    });
 
     try {
       const { data, error } = await supabase.functions.invoke('search-suppliers', {
@@ -136,7 +197,29 @@ export const StockHealthChart = () => {
           ...prev,
           [itemName]: data.bestDeal
         }));
+
+        addActivity({
+          id: `found-${itemName}-${Date.now()}`,
+          type: 'found',
+          message: `Found best supplier: ${data.bestDeal?.supplier_name || 'Unknown'}`,
+          timestamp: new Date(),
+          itemName,
+        });
+
+        // Auto-trigger ElevenLabs agent if this was auto-triggered
+        if (isAutoTriggered) {
+          setTimeout(() => {
+            initiateVoiceAgent(itemName, data.bestDeal);
+          }, 1000);
+        }
       } else {
+        addActivity({
+          id: `error-${itemName}-${Date.now()}`,
+          type: 'error',
+          message: data.error || 'Could not find suppliers',
+          timestamp: new Date(),
+          itemName,
+        });
         toast({
           title: "Search Failed",
           description: data.error || "Could not find suppliers",
@@ -145,6 +228,13 @@ export const StockHealthChart = () => {
       }
     } catch (error) {
       console.error('Error searching suppliers:', error);
+      addActivity({
+        id: `error-${itemName}-${Date.now()}`,
+        type: 'error',
+        message: 'Failed to search for suppliers',
+        timestamp: new Date(),
+        itemName,
+      });
       toast({
         title: "Error",
         description: "Failed to search for suppliers",
@@ -153,6 +243,41 @@ export const StockHealthChart = () => {
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const initiateVoiceAgent = async (itemName: string, bestDeal: any) => {
+    if (!bestDeal) return;
+
+    addActivity({
+      id: `calling-${itemName}-${Date.now()}`,
+      type: 'calling',
+      message: 'Initiating voice agent call...',
+      timestamp: new Date(),
+      itemName,
+    });
+
+    // TODO: Implement ElevenLabs agent initiation
+    // This will use the AgentContext with supplier_info and order_details
+    console.log('Initiating voice agent with:', {
+      supplier_info: {
+        supplier_name: bestDeal.supplier_name,
+        location: bestDeal.location,
+        reasoning: bestDeal.reasoning,
+      },
+      order_details: {
+        product_name: itemName,
+        quantity_needed: 10, // TODO: Calculate based on current stock
+        price_per_unit: bestDeal.price_per_unit || 0,
+        total_cost: bestDeal.total_cost || 0,
+        supplier_name: bestDeal.supplier_name,
+        location: bestDeal.location,
+      }
+    });
+
+    toast({
+      title: "Voice Agent Initiated",
+      description: `Preparing to contact ${bestDeal.supplier_name}`,
+    });
   };
 
   const handleItemClick = (item: ItemStock) => {
@@ -202,6 +327,9 @@ export const StockHealthChart = () => {
 
   return (
     <div className="w-full">
+      {/* Activity Feed */}
+      <ActivityFeed activities={activities} />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
