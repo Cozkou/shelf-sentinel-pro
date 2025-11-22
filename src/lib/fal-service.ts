@@ -126,7 +126,7 @@ Provide a structured response with:
     const result = await fal.subscribe("fal-ai/any-llm/vision", {
       input: {
         prompt: analysisPrompt,
-        image_url: imageUrl,
+        image_urls: [imageUrl],
         model: "google/gemini-flash-1.5",
       },
       logs: true,
@@ -176,7 +176,7 @@ Provide a structured response with:
     const result = await fal.subscribe("fal-ai/any-llm/vision", {
       input: {
         prompt: analysisPrompt,
-        image_url: imageUrl,
+        image_urls: [imageUrl],
         model: "google/gemini-flash-1.5",
       },
       logs: true,
