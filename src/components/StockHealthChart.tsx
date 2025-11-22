@@ -126,22 +126,22 @@ export const StockHealthChart = () => {
   };
 
   return (
-    <Card className="p-4 md:p-6 bg-gradient-to-br from-card to-accent/5 border-0 md:border md:border-border/50">
+    <Card className="p-4 md:p-6 bg-card/50 backdrop-blur-sm border border-border/50">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-2 md:gap-3">
-          <h3 className="text-base md:text-lg font-semibold text-foreground">
-            Current Stock Levels
+          <h3 className="text-base md:text-lg font-semibold text-foreground tracking-tight">
+            Stock Levels
           </h3>
           <div className="flex gap-2 text-[10px] md:text-xs flex-wrap">
-            <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-red-500/10">
+            <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md bg-red-500/10 border border-red-500/20">
               <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500" />
               <span className="text-muted-foreground font-medium">Max: {MAX_STOCK}</span>
             </div>
-            <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-yellow-500/10">
+            <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-md bg-yellow-500/10 border border-yellow-500/20">
               <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-500" />
               <span className="text-muted-foreground font-medium">Reorder: {REORDER_LEVEL}</span>
             </div>
@@ -220,7 +220,7 @@ export const StockHealthChart = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20, height: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border-0 md:border md:border-border/30"
+              className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-md bg-card/30 hover:bg-card/50 transition-all border border-border/30 hover:border-primary/30"
             >
               <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
               {item.quantity <= REORDER_LEVEL && (
