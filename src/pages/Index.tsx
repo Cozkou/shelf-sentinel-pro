@@ -6,8 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
-import { StockHealthChart } from "@/components/StockHealthChart";
-import { SimplePhotoCapture } from "@/components/SimplePhotoCapture";
+import { InventoryView } from "@/components/InventoryView";
 import { AgentChatbox } from "@/components/AgentChatbox";
 import { OrdersSection } from "@/components/OrdersSection";
 
@@ -69,17 +68,9 @@ const Index = () => {
           <StockAlert />
         </section>
 
-        {/* Stock Charts */}
+        {/* Inventory View - Charts & Capture */}
         <section className="mb-6 sm:mb-8">
-          <StockHealthChart />
-        </section>
-
-        {/* Photo Capture */}
-        <section className="mb-6 sm:mb-8">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
-            Quick Actions
-          </h3>
-          <SimplePhotoCapture onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)} />
+          <InventoryView onPhotoSaved={() => setRefreshPhotos(prev => prev + 1)} />
         </section>
 
         {/* Agent Chat & Orders */}
