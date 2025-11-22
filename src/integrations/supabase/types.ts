@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_conversations: {
+        Row: {
+          agent_reasoning: string | null
+          created_at: string
+          id: string
+          order_id: string | null
+          status: string
+          transcript: Json
+          user_id: string
+        }
+        Insert: {
+          agent_reasoning?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          transcript: Json
+          user_id: string
+        }
+        Update: {
+          agent_reasoning?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          status?: string
+          transcript?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_counts: {
         Row: {
           created_at: string
@@ -102,6 +132,75 @@ export type Database = {
           description?: string | null
           id?: string
           storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          status: string
+          supplier_id: string | null
+          total_cost: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items: Json
+          status?: string
+          supplier_id?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          status?: string
+          supplier_id?: string | null
+          total_cost?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          supplier_products: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          supplier_products?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          supplier_products?: Json | null
           updated_at?: string
           user_id?: string
         }
