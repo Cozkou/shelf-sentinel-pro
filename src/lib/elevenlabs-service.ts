@@ -265,15 +265,20 @@ export async function generateConversationalResponse(
     try {
       const audio = await elevenlabs.textToSpeech.convert(voiceId, {
         text: recommendation,
-        model_id: 'eleven_monolingual_v1',
+        modelId: 'eleven_monolingual_v1',
       });
 
       // Convert audio stream to blob URL
       const chunks: Uint8Array[] = [];
-      for await (const chunk of audio) {
-        chunks.push(chunk);
+      const reader = audio.getReader();
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(value);
       }
-      const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
+      
+      const audioBlob = new Blob(chunks as BlobPart[], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       transcript[transcript.length - 1].audio_url = audioUrl;
