@@ -49,9 +49,9 @@ serve(async (req) => {
     }
 
     const VALYU_API_KEY = Deno.env.get('VALYU_API_KEY');
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!VALYU_API_KEY || !OPENAI_API_KEY) {
+    if (!VALYU_API_KEY || !LOVABLE_API_KEY) {
       throw new Error('API keys not configured');
     }
 
@@ -88,14 +88,14 @@ serve(async (req) => {
 
     // Step 1: Extract supplier data with GPT
     console.log('[Step 1] Extracting supplier data with GPT...');
-    const step1Response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const step1Response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
@@ -184,14 +184,14 @@ Return JSON: {"suppliers": [...]}`
 
     // Step 2: Choose best deal with GPT
     console.log('[Step 2] Analyzing best deal with GPT...');
-    const step2Response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const step2Response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
             role: 'system',
