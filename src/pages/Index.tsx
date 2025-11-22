@@ -206,11 +206,15 @@ const Index = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-72 p-3 bg-background/95 backdrop-blur-xl border-border/50 shadow-lg z-[100]" 
+                  className="w-72 p-3 bg-background/95 backdrop-blur-xl border-border/50 shadow-lg z-[100] relative" 
                   align="end"
                   sideOffset={12}
                 >
-                  <StockAlert />
+                  {/* Arrow pointer */}
+                  <div className="absolute -top-2 right-4 w-4 h-4 bg-background/95 border-t border-l border-border/50 rotate-45" />
+                  <div className="relative z-10">
+                    <StockAlert />
+                  </div>
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
