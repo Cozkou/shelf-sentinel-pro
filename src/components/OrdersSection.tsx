@@ -16,10 +16,6 @@ interface Order {
   }>;
   status: string;
   total_cost: number;
-  currency: string;
-  notes: string;
-  approval_required: boolean;
-  expected_delivery_date?: string;
   created_at: string;
   suppliers?: {
     name: string;
@@ -64,10 +60,6 @@ export const OrdersSection = () => {
           items,
           status,
           total_cost,
-          currency,
-          notes,
-          approval_required,
-          expected_delivery_date,
           created_at,
           suppliers (
             name
@@ -79,7 +71,18 @@ export const OrdersSection = () => {
 
       if (error) throw error;
 
-      setOrders(data || []);
+      // Cast Json types to proper types and handle optional suppliers
+      const typedOrders = (data || []).map(order => ({
+        ...order,
+        items: Array.isArray(order.items) 
+          ? (order.items as unknown as Array<{ name: string; quantity: number; unit_price: number }>) 
+          : [],
+        suppliers: (order.suppliers && typeof order.suppliers === 'object' && !Array.isArray(order.suppliers) && 'name' in order.suppliers)
+          ? order.suppliers as { name: string }
+          : undefined
+      }));
+
+      setOrders(typedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({
@@ -227,9 +230,6 @@ export const OrdersSection = () => {
           const itemCount = order.items.length;
           const firstItem = order.items[0];
           const orderDate = format(new Date(order.created_at), 'MMM dd, yyyy');
-          const eta = order.expected_delivery_date
-            ? format(new Date(order.expected_delivery_date), 'MMM dd, yyyy')
-            : 'Not scheduled';
 
           return (
             <div key={order.id} className="flex items-start gap-3 p-2 sm:p-3 rounded-lg bg-secondary/30">
@@ -254,19 +254,11 @@ export const OrdersSection = () => {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mb-2">
-                  ${order.total_cost.toFixed(2)} {order.currency} • {orderDate}
-                  {order.status !== 'draft' && order.status !== 'cancelled' && ` • ETA: ${eta}`}
+                  ${order.total_cost.toFixed(2)} • {orderDate}
                 </p>
 
-                {/* Show reasoning for draft orders */}
-                {order.status === 'draft' && order.notes && (
-                  <div className="text-xs text-muted-foreground bg-background/50 p-2 rounded mb-2 max-w-prose">
-                    <strong className="text-foreground">AI Recommendation:</strong> {order.notes}
-                  </div>
-                )}
-
                 {/* Action buttons for draft orders */}
-                {order.status === 'draft' && order.approval_required && (
+                {order.status === 'draft' && (
                   <div className="flex gap-2">
                     <Button
                       size="sm"

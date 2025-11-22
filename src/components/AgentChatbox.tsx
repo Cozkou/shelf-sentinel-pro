@@ -67,7 +67,14 @@ export const AgentChatbox = () => {
 
       if (error) throw error;
 
-      setConversations(data || []);
+      // Cast the Json type to our ConversationMessage[] type
+      const typedData = (data || []).map(conv => ({
+        ...conv,
+        transcript: Array.isArray(conv.transcript) 
+          ? (conv.transcript as unknown as ConversationMessage[]) 
+          : []
+      }));
+      setConversations(typedData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {

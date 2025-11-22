@@ -154,7 +154,13 @@ export async function executeSupplierSearchWorkflow(
     // Step 2: Search Valyu AI for suppliers
     console.log('[Workflow] Step 2: Searching Valyu AI for suppliers...');
     const valyuResults = await searchSuppliersForItems([{ name: itemName, quantity: currentQuantity }]);
-    const valyuSuppliersForItem: ValyuSupplierResult[] = valyuResults[itemName] || [];
+    const valyuSuppliersRaw = valyuResults[itemName] || [];
+    
+    // Convert SupplierInfo to ValyuSupplierResult by adding contact field
+    const valyuSuppliersForItem: ValyuSupplierResult[] = valyuSuppliersRaw.map(s => ({
+      ...s,
+      contact: s.contact_phone || s.contact_email || 'Contact information not available'
+    }));
 
     console.log(`[Workflow] Found ${valyuSuppliersForItem.length} suppliers from Valyu`);
 
@@ -225,11 +231,15 @@ async function saveInventorySnapshot(
 
   if (uploadError) throw uploadError;
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
   // Save inventory_photos record
   const { data, error } = await supabase
     .from('inventory_photos')
-    .insert({
-      user_id: userId,
+    .insert([{
+      user_id: user.id,
       storage_path: fileName,
       description: `AI analyzed - ${analysis.total_items} items detected`,
       analysis_data: {
@@ -237,8 +247,8 @@ async function saveInventorySnapshot(
         timestamp: analysis.timestamp,
         total_items: analysis.total_items,
         raw_output: analysis.raw_output
-      }
-    })
+      } as any
+    }])
     .select()
     .single();
 
@@ -349,14 +359,7 @@ async function fetchExistingSuppliers(): Promise<ExistingSupplier[]> {
       name,
       contact_phone,
       contact_email,
-      location,
-      supplier_products (
-        product_name,
-        unit_price,
-        currency,
-        min_order_quantity,
-        lead_time_days
-      )
+      location
     `);
 
   if (error) {
@@ -370,7 +373,7 @@ async function fetchExistingSuppliers(): Promise<ExistingSupplier[]> {
     contact_phone: s.contact_phone,
     contact_email: s.contact_email,
     location: s.location,
-    products: s.supplier_products || []
+    products: []
   }));
 }
 
@@ -399,7 +402,7 @@ async function createDraftOrderFromGPT(
 
   const { data, error } = await supabase
     .from('orders')
-    .insert({
+    .insert([{
       user_id: userId,
       supplier_id: supplierId,
       items: [
@@ -411,11 +414,8 @@ async function createDraftOrderFromGPT(
         }
       ],
       status: 'draft',
-      total_cost: order_recommendation.total_cost,
-      currency: order_recommendation.currency,
-      notes: order_recommendation.reasoning,
-      approval_required: true
-    })
+      total_cost: order_recommendation.total_cost
+    }])
     .select()
     .single();
 
@@ -436,14 +436,13 @@ async function saveConversationToDatabase(
 ): Promise<void> {
   const { error } = await supabase
     .from('agent_conversations')
-    .insert({
+    .insert([{
       user_id: userId,
       order_id: orderId,
-      transcript,
+      transcript: transcript as any,
       agent_reasoning: gptAnalysis.full_reasoning,
-      recommendations: gptAnalysis.order_recommendation,
       status: 'active'
-    });
+    }]);
 
   if (error) {
     console.error('[Workflow] Error saving conversation:', error);
