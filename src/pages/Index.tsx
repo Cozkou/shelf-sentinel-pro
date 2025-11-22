@@ -9,6 +9,7 @@ import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
 import { OrdersSection } from "@/components/OrdersSection";
+import { AgentChatbox } from "@/components/AgentChatbox";
 import { BottomNav } from "@/components/BottomNav";
 import { CaptureOptions } from "@/components/CaptureOptions";
 import CameraCapture from "@/components/CameraCapture";
@@ -64,99 +65,35 @@ const Index = () => {
 
     toast({
       title: "Processing Photo",
-      description: "Analyzing your inventory...",
+      description: "Analyzing your inventory with AI...",
     });
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const analysis = await import("@/lib/fal-service").then(m => m.analyzeImage(file));
-      
-      const fileName = `${user.id}/${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from('inventory-photos')
-        .upload(fileName, file);
+      // Use the workflow orchestrator
+      const { executeInventoryWorkflow } = await import("@/lib/workflow-orchestrator");
+      const result = await executeInventoryWorkflow(file, user.id);
 
-      if (uploadError) throw uploadError;
-
-      const parseInventoryItems = (analysisText: string) => {
-        const items: { name: string; quantity: number }[] = [];
-        const lines = analysisText.split('\n');
-        
-        for (const line of lines) {
-          const patterns = [
-            /(\d+)\s*x\s*(.+)/i,
-            /(.+?):\s*(\d+)/,
-            /(.+?)\s*\((\d+)\)/,
-            /(\d+)\s+(.+)/,
-          ];
-          
-          for (const pattern of patterns) {
-            const match = line.match(pattern);
-            if (match) {
-              let name: string;
-              let quantity: number;
-              
-              if (pattern.source.startsWith('(\\d+)')) {
-                quantity = parseInt(match[1]);
-                name = match[2].trim();
-              } else {
-                name = match[1].trim();
-                quantity = parseInt(match[2]);
-              }
-              
-              if (name && !isNaN(quantity) && quantity > 0) {
-                items.push({ name, quantity });
-                break;
-              }
-            }
-          }
-        }
-        
-        return items;
-      };
-
-      const parsedItems = parseInventoryItems(analysis);
-
-      const { data: photoData, error: photoError } = await supabase
-        .from('inventory_photos')
-        .insert({
-          user_id: user.id,
-          storage_path: fileName,
-          description: 'AI analyzed inventory snapshot',
-          analysis_data: { items: parsedItems, raw: analysis },
-        })
-        .select()
-        .single();
-
-      if (photoError) throw photoError;
-
-      for (const item of parsedItems) {
-        const { data: itemData, error: itemError } = await supabase
-          .from('inventory_items')
-          .upsert(
-            { user_id: user.id, item_name: item.name },
-            { onConflict: 'user_id,item_name' }
-          )
-          .select()
-          .single();
-
-        if (itemError) throw itemError;
-
-        await supabase
-          .from('inventory_counts')
-          .insert({
-            item_id: itemData.id,
-            photo_id: photoData.id,
-            quantity: item.quantity,
-          });
+      if (!result.success) {
+        throw new Error(result.error || 'Workflow failed');
       }
 
-      toast({
-        title: "✓ Photo Saved",
-        description: `Successfully processed ${parsedItems.length} item${parsedItems.length !== 1 ? 's' : ''}`,
-      });
+      const itemCount = result.analysis?.items.length || 0;
+      const needsReorder = result.predictions?.filter(p => p.needsReorder).length || 0;
+
+      if (needsReorder > 0) {
+        toast({
+          title: "✓ Photo Analyzed",
+          description: `Found ${itemCount} items. ${needsReorder} need reordering - check Charts tab!`,
+        });
+      } else {
+        toast({
+          title: "✓ Photo Saved",
+          description: `Successfully processed ${itemCount} item${itemCount !== 1 ? 's' : ''}. All stock levels healthy!`,
+        });
+      }
 
       setRefreshPhotos(prev => prev + 1);
       setActiveTab('archive');
@@ -246,7 +183,14 @@ const Index = () => {
               </h3>
               <OrdersSection />
             </section>
-            
+
+            <section>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
+                AI Agent Conversations
+              </h3>
+              <AgentChatbox />
+            </section>
+
             <section>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
                 Photo Archive

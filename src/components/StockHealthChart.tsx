@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Line, ComposedChart } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePredictiveCurve, type ReorderLevels } from "@/lib/stock-analyzer";
+import { executeSupplierSearchWorkflow } from "@/lib/workflow-orchestrator";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Search } from "lucide-react";
 
 interface ItemData {
   itemId: string;
@@ -21,6 +25,8 @@ interface ItemData {
 export const StockHealthChart = () => {
   const [itemsData, setItemsData] = useState<ItemData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchingSuppliers, setSearchingSuppliers] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchItemsData();
@@ -74,6 +80,40 @@ export const StockHealthChart = () => {
       console.error('Error fetching items data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearchSuppliers = async (itemId: string, itemName: string) => {
+    try {
+      setSearchingSuppliers(itemId);
+
+      toast({
+        title: "Searching Suppliers",
+        description: `Analyzing market for ${itemName}...`,
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const result = await executeSupplierSearchWorkflow(user.id, itemId, itemName);
+
+      if (result.success) {
+        toast({
+          title: "Supplier Analysis Complete",
+          description: `Created draft order for ${itemName}. Check the Archive tab to review.`,
+        });
+      } else {
+        throw new Error(result.error || 'Supplier search failed');
+      }
+    } catch (error) {
+      console.error('Error searching suppliers:', error);
+      toast({
+        title: "Supplier Search Failed",
+        description: error instanceof Error ? error.message : "Failed to search suppliers",
+        variant: "destructive",
+      });
+    } finally {
+      setSearchingSuppliers(null);
     }
   };
 
@@ -272,26 +312,51 @@ export const StockHealthChart = () => {
                 </ResponsiveContainer>
               </ChartContainer>
 
-              {/* Stock status indicator */}
-              <div className="mt-3 flex items-center gap-2">
-                {historicalData.length > 0 && (
-                  <>
-                    {historicalData[historicalData.length - 1].quantity <= levels.reorder_level && (
-                      <span className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded">
-                        ⚠️ Below Reorder Level - Action Needed
-                      </span>
+              {/* Stock status indicator and action button */}
+              <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  {historicalData.length > 0 && (
+                    <>
+                      {historicalData[historicalData.length - 1].quantity <= levels.reorder_level && (
+                        <span className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded">
+                          ⚠️ Below Reorder Level - Action Needed
+                        </span>
+                      )}
+                      {historicalData[historicalData.length - 1].quantity <= levels.minimum_stock && (
+                        <span className="text-xs bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-1 rounded">
+                          🚨 Critical - Below Minimum Stock
+                        </span>
+                      )}
+                      {historicalData[historicalData.length - 1].quantity > levels.reorder_level && (
+                        <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">
+                          ✓ Healthy Stock Level
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Search Suppliers button - shown when below reorder level */}
+                {historicalData.length > 0 &&
+                 historicalData[historicalData.length - 1].quantity <= levels.reorder_level && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleSearchSuppliers(item.itemId, item.itemName)}
+                    disabled={searchingSuppliers === item.itemId}
+                    className="text-xs h-7"
+                  >
+                    {searchingSuppliers === item.itemId ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="mr-1 h-3 w-3" />
+                        Search Suppliers
+                      </>
                     )}
-                    {historicalData[historicalData.length - 1].quantity <= levels.minimum_stock && (
-                      <span className="text-xs bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-1 rounded">
-                        🚨 Critical - Below Minimum Stock
-                      </span>
-                    )}
-                    {historicalData[historicalData.length - 1].quantity > levels.reorder_level && (
-                      <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">
-                        ✓ Healthy Stock Level
-                      </span>
-                    )}
-                  </>
+                  </Button>
                 )}
               </div>
             </Card>

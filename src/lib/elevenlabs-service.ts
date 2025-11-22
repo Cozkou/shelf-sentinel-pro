@@ -3,6 +3,7 @@
  * Handles AI agent conversations for supplier ordering
  */
 
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import type { StockTrend } from './stock-analyzer';
 
 export interface AgentContext {
@@ -36,6 +37,11 @@ export interface AgentRecommendation {
 // ElevenLabs configuration
 const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY;
 const ELEVENLABS_API_BASE = 'https://api.elevenlabs.io/v1';
+
+// Initialize ElevenLabs client
+const elevenlabs = new ElevenLabsClient({
+  apiKey: ELEVENLABS_API_KEY
+});
 
 /**
  * Get AI agent recommendation for reordering
@@ -215,5 +221,104 @@ export async function sendMessageToAgent(
   } catch (error) {
     console.error('[ElevenLabs] Message sending error:', error);
     throw new Error(`Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Generate conversational response from GPT analysis
+ * Converts structured analysis to natural conversation
+ * @param recommendation - GPT analysis result
+ * @param gptReasoning - Full reasoning from GPT
+ * @returns Conversational transcript
+ */
+export interface ConversationTranscript {
+  role: 'agent' | 'system' | 'user';
+  content: string;
+  timestamp: string;
+  audio_url?: string;
+}
+
+export async function generateConversationalResponse(
+  recommendation: string,
+  voiceId: string = 'EXAVITQu4vr4xnSDxMaL' // Default professional voice
+): Promise<ConversationTranscript[]> {
+  try {
+    console.log('[ElevenLabs] Generating conversational response...');
+
+    const transcript: ConversationTranscript[] = [];
+
+    // System message
+    transcript.push({
+      role: 'system',
+      content: 'Inventory analysis complete. Initiating procurement recommendation.',
+      timestamp: new Date().toISOString()
+    });
+
+    // Agent recommendation
+    transcript.push({
+      role: 'agent',
+      content: recommendation,
+      timestamp: new Date().toISOString()
+    });
+
+    // Generate audio for the recommendation (optional)
+    try {
+      const audio = await elevenlabs.textToSpeech.convert(voiceId, {
+        text: recommendation,
+        model_id: 'eleven_monolingual_v1',
+      });
+
+      // Convert audio stream to blob URL
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of audio) {
+        chunks.push(chunk);
+      }
+      const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      transcript[transcript.length - 1].audio_url = audioUrl;
+      console.log('[ElevenLabs] Audio generated:', audioUrl);
+    } catch (audioError) {
+      console.warn('[ElevenLabs] Audio generation failed, continuing with text only:', audioError);
+    }
+
+    return transcript;
+
+  } catch (error) {
+    console.error('[ElevenLabs] Conversation generation error:', error);
+    throw new Error(`Failed to generate conversation: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
+ * Create a full conversational agent session with context
+ * @param gptAnalysis - Full reasoning from GPT
+ * @param recommendation - Order recommendation text
+ * @returns Session transcript
+ */
+export async function createConversationalSession(
+  gptAnalysis: string,
+  recommendation: string
+): Promise<{
+  sessionId: string;
+  transcript: ConversationTranscript[];
+}> {
+  try {
+    console.log('[ElevenLabs] Creating conversational session...');
+
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    const transcript = await generateConversationalResponse(recommendation);
+
+    console.log('[ElevenLabs] Session created successfully');
+
+    return {
+      sessionId,
+      transcript
+    };
+
+  } catch (error) {
+    console.error('[ElevenLabs] Session creation error:', error);
+    throw new Error(`Failed to create conversational session: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
