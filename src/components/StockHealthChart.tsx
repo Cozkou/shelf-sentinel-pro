@@ -1,75 +1,68 @@
 import { Card } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const data = [
+  { day: "Mon", healthy: 42, low: 24, critical: 2 },
+  { day: "Tue", healthy: 40, low: 26, critical: 2 },
+  { day: "Wed", healthy: 38, low: 27, critical: 3 },
+  { day: "Thu", healthy: 42, low: 24, critical: 2 },
+  { day: "Fri", healthy: 44, low: 22, critical: 2 },
+  { day: "Sat", healthy: 43, low: 23, critical: 2 },
+  { day: "Sun", healthy: 42, low: 24, critical: 2 },
+];
 
 export const StockHealthChart = () => {
   return (
     <Card className="p-4 sm:p-6">
       <h3 className="text-sm font-medium text-foreground mb-4">Stock Health</h3>
-      <div className="flex items-center justify-center gap-6 sm:gap-8">
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
-          <svg viewBox="0 0 100 100" className="transform -rotate-90">
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="hsl(var(--muted))"
-              strokeWidth="8"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="hsl(var(--primary))"
-              strokeWidth="8"
-              strokeDasharray="175 251"
-              strokeLinecap="round"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="hsl(142 76% 36%)"
-              strokeWidth="8"
-              strokeDasharray="75 251"
-              strokeDashoffset="-175"
-              strokeLinecap="round"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="40"
-              fill="none"
-              stroke="hsl(var(--destructive))"
-              strokeWidth="8"
-              strokeDasharray="1 251"
-              strokeDashoffset="-250"
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-lg sm:text-2xl font-semibold text-foreground">68</p>
-              <p className="text-xs text-muted-foreground">Items</p>
-            </div>
-          </div>
-        </div>
-        <div className="space-y-2 sm:space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[hsl(142,76%,36%)]" />
-            <span className="text-xs sm:text-sm text-muted-foreground">Healthy: 42</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-xs sm:text-sm text-muted-foreground">Low: 24</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-destructive" />
-            <span className="text-xs sm:text-sm text-muted-foreground">Critical: 2</span>
-          </div>
-        </div>
-      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis 
+            dataKey="day" 
+            stroke="hsl(var(--muted-foreground))"
+            style={{ fontSize: '12px' }}
+          />
+          <YAxis 
+            stroke="hsl(var(--muted-foreground))"
+            style={{ fontSize: '12px' }}
+          />
+          <Tooltip 
+            contentStyle={{
+              backgroundColor: 'hsl(var(--background))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '8px',
+            }}
+          />
+          <Legend 
+            wrapperStyle={{
+              fontSize: '12px',
+              paddingTop: '10px',
+            }}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="healthy" 
+            stroke="hsl(142, 76%, 36%)" 
+            strokeWidth={2}
+            name="Healthy"
+          />
+          <Line 
+            type="monotone" 
+            dataKey="low" 
+            stroke="hsl(var(--primary))" 
+            strokeWidth={2}
+            name="Low"
+          />
+          <Line 
+            type="monotone" 
+            dataKey="critical" 
+            stroke="hsl(var(--destructive))" 
+            strokeWidth={2}
+            name="Critical"
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </Card>
   );
 };
