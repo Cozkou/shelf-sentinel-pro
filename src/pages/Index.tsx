@@ -11,6 +11,7 @@ import { StockHealthChart } from "@/components/StockHealthChart";
 import { SimplePhotoCapture } from "@/components/SimplePhotoCapture";
 import { OrdersSection } from "@/components/OrdersSection";
 import { BottomNav } from "@/components/BottomNav";
+import { CaptureOptions } from "@/components/CaptureOptions";
 
 const Index = () => {
   const { toast } = useToast();
@@ -19,6 +20,7 @@ const Index = () => {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'charts' | 'archive'>('charts');
   const captureInputRef = useState<HTMLInputElement | null>(null)[0];
+  const [isCaptureOptionsOpen, setIsCaptureOptionsOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,123 +45,135 @@ const Index = () => {
   };
 
   const handleCaptureClick = () => {
+    setIsCaptureOptionsOpen(true);
+  };
+
+  const handleTakePhoto = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.capture = 'environment' as any;
-    input.onchange = async (e: any) => {
-      const file = e.target?.files?.[0];
-      if (!file) return;
+    input.onchange = (e: any) => processPhoto(e.target?.files?.[0]);
+    input.click();
+  };
 
-      // Process the file similar to SimplePhotoCapture
-      toast({
-        title: "Processing Photo",
-        description: "Analyzing your inventory...",
-      });
+  const handleUploadPhoto = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e: any) => processPhoto(e.target?.files?.[0]);
+    input.click();
+  };
 
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not authenticated");
+  const processPhoto = async (file: File | undefined) => {
+    if (!file) return;
 
-        const analysis = await import("@/lib/fal-service").then(m => m.analyzeImage(file));
+    toast({
+      title: "Processing Photo",
+      description: "Analyzing your inventory...",
+    });
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const analysis = await import("@/lib/fal-service").then(m => m.analyzeImage(file));
+      
+      const fileName = `${user.id}/${Date.now()}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('inventory-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const parseInventoryItems = (analysisText: string) => {
+        const items: { name: string; quantity: number }[] = [];
+        const lines = analysisText.split('\n');
         
-        const fileName = `${user.id}/${Date.now()}.jpg`;
-        const { error: uploadError } = await supabase.storage
-          .from('inventory-photos')
-          .upload(fileName, file);
-
-        if (uploadError) throw uploadError;
-
-        const parseInventoryItems = (analysisText: string) => {
-          const items: { name: string; quantity: number }[] = [];
-          const lines = analysisText.split('\n');
+        for (const line of lines) {
+          const patterns = [
+            /(\d+)\s*x\s*(.+)/i,
+            /(.+?):\s*(\d+)/,
+            /(.+?)\s*\((\d+)\)/,
+            /(\d+)\s+(.+)/,
+          ];
           
-          for (const line of lines) {
-            const patterns = [
-              /(\d+)\s*x\s*(.+)/i,
-              /(.+?):\s*(\d+)/,
-              /(.+?)\s*\((\d+)\)/,
-              /(\d+)\s+(.+)/,
-            ];
-            
-            for (const pattern of patterns) {
-              const match = line.match(pattern);
-              if (match) {
-                let name: string;
-                let quantity: number;
-                
-                if (pattern.source.startsWith('(\\d+)')) {
-                  quantity = parseInt(match[1]);
-                  name = match[2].trim();
-                } else {
-                  name = match[1].trim();
-                  quantity = parseInt(match[2]);
-                }
-                
-                if (name && !isNaN(quantity) && quantity > 0) {
-                  items.push({ name, quantity });
-                  break;
-                }
+          for (const pattern of patterns) {
+            const match = line.match(pattern);
+            if (match) {
+              let name: string;
+              let quantity: number;
+              
+              if (pattern.source.startsWith('(\\d+)')) {
+                quantity = parseInt(match[1]);
+                name = match[2].trim();
+              } else {
+                name = match[1].trim();
+                quantity = parseInt(match[2]);
+              }
+              
+              if (name && !isNaN(quantity) && quantity > 0) {
+                items.push({ name, quantity });
+                break;
               }
             }
           }
-          
-          return items;
-        };
+        }
+        
+        return items;
+      };
 
-        const parsedItems = parseInventoryItems(analysis);
+      const parsedItems = parseInventoryItems(analysis);
 
-        const { data: photoData, error: photoError } = await supabase
-          .from('inventory_photos')
-          .insert({
-            user_id: user.id,
-            storage_path: fileName,
-            description: 'AI analyzed inventory snapshot',
-            analysis_data: { items: parsedItems, raw: analysis },
-          })
+      const { data: photoData, error: photoError } = await supabase
+        .from('inventory_photos')
+        .insert({
+          user_id: user.id,
+          storage_path: fileName,
+          description: 'AI analyzed inventory snapshot',
+          analysis_data: { items: parsedItems, raw: analysis },
+        })
+        .select()
+        .single();
+
+      if (photoError) throw photoError;
+
+      for (const item of parsedItems) {
+        const { data: itemData, error: itemError } = await supabase
+          .from('inventory_items')
+          .upsert(
+            { user_id: user.id, item_name: item.name },
+            { onConflict: 'user_id,item_name' }
+          )
           .select()
           .single();
 
-        if (photoError) throw photoError;
+        if (itemError) throw itemError;
 
-        for (const item of parsedItems) {
-          const { data: itemData, error: itemError } = await supabase
-            .from('inventory_items')
-            .upsert(
-              { user_id: user.id, item_name: item.name },
-              { onConflict: 'user_id,item_name' }
-            )
-            .select()
-            .single();
-
-          if (itemError) throw itemError;
-
-          await supabase
-            .from('inventory_counts')
-            .insert({
-              item_id: itemData.id,
-              photo_id: photoData.id,
-              quantity: item.quantity,
-            });
-        }
-
-        toast({
-          title: "✓ Photo Saved",
-          description: `Successfully processed ${parsedItems.length} item${parsedItems.length !== 1 ? 's' : ''}`,
-        });
-
-        setRefreshPhotos(prev => prev + 1);
-        setActiveTab('archive');
-      } catch (error) {
-        console.error("Processing error:", error);
-        toast({
-          title: "Processing Failed",
-          description: error instanceof Error ? error.message : "Failed to process photo",
-          variant: "destructive",
-        });
+        await supabase
+          .from('inventory_counts')
+          .insert({
+            item_id: itemData.id,
+            photo_id: photoData.id,
+            quantity: item.quantity,
+          });
       }
-    };
-    input.click();
+
+      toast({
+        title: "✓ Photo Saved",
+        description: `Successfully processed ${parsedItems.length} item${parsedItems.length !== 1 ? 's' : ''}`,
+      });
+
+      setRefreshPhotos(prev => prev + 1);
+      setActiveTab('archive');
+    } catch (error) {
+      console.error("Processing error:", error);
+      toast({
+        title: "Processing Failed",
+        description: error instanceof Error ? error.message : "Failed to process photo",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!user) {
@@ -229,6 +243,14 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} onCaptureClick={handleCaptureClick} />
+
+      {/* Capture Options Modal */}
+      <CaptureOptions
+        open={isCaptureOptionsOpen}
+        onClose={() => setIsCaptureOptionsOpen(false)}
+        onTakePhoto={handleTakePhoto}
+        onUploadPhoto={handleUploadPhoto}
+      />
 
       {/* Alert Notification Dialog */}
       <Dialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
