@@ -103,4 +103,11 @@ All colors MUST be HSL.
       backdrop-filter: blur(24px);
     }
   }
+  
+  /* Toast positioning - above footer on mobile */
+  @media (max-width: 640px) {
+    [data-sonner-toaster] {
+      bottom: 5.5rem !important;
+    }
+  }
 }
