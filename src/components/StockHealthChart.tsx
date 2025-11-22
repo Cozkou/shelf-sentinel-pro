@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trash2, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SupplierSearchModal } from "./SupplierSearchModal";
+import { ProductDetailModal } from "./ProductDetailModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface ItemStock {
   itemId: string;
@@ -25,6 +27,10 @@ export const StockHealthChart = () => {
   const [bestDeal, setBestDeal] = useState<any>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<ItemStock | null>(null);
+  const [supplierCache, setSupplierCache] = useState<Record<string, any>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchCurrentStock();
@@ -99,6 +105,16 @@ export const StockHealthChart = () => {
   };
 
   const handleSearchSuppliers = async (itemName: string) => {
+    // Check cache first
+    if (supplierCache[itemName]) {
+      setBestDeal(supplierCache[itemName]);
+      toast({
+        title: "Cached Result",
+        description: "Showing previously found supplier",
+      });
+      return;
+    }
+
     setSelectedProduct(itemName);
     setSearchModalOpen(true);
     setSearchLoading(true);
@@ -115,13 +131,38 @@ export const StockHealthChart = () => {
       if (data.success) {
         setSearchLogs(data.logs);
         setBestDeal(data.bestDeal);
+        // Cache the result
+        setSupplierCache(prev => ({
+          ...prev,
+          [itemName]: data.bestDeal
+        }));
       } else {
-        console.error('Search failed:', data.error);
+        toast({
+          title: "Search Failed",
+          description: data.error || "Could not find suppliers",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error searching suppliers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to search for suppliers",
+        variant: "destructive",
+      });
     } finally {
       setSearchLoading(false);
+    }
+  };
+
+  const handleItemClick = (item: ItemStock) => {
+    setSelectedItem(item);
+    setProductModalOpen(true);
+    // Load cached supplier if available
+    if (supplierCache[item.itemName]) {
+      setBestDeal(supplierCache[item.itemName]);
+    } else {
+      setBestDeal(null);
     }
   };
 
@@ -245,7 +286,8 @@ export const StockHealthChart = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20, height: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-md bg-card/30 hover:bg-card/50 transition-all border border-border/30 hover:border-primary/30"
+              className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-md bg-card/30 hover:bg-card/50 transition-all border border-border/30 hover:border-primary/30 cursor-pointer"
+              onClick={() => handleItemClick(item)}
             >
               <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{shortenName(item.itemName, 20)}</span>
               {item.quantity <= REORDER_LEVEL && (
@@ -265,7 +307,10 @@ export const StockHealthChart = () => {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.2, delay: 0.1 }}
                     className="h-6 w-6 md:h-7 md:w-7 flex items-center justify-center rounded-full bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 transition-colors"
-                    onClick={() => handleSearchSuppliers(item.itemName)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSearchSuppliers(item.itemName);
+                    }}
                   >
                     <Phone className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   </motion.button>
@@ -295,7 +340,10 @@ export const StockHealthChart = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleDeleteItem(item.itemId, item.itemName)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteItem(item.itemId, item.itemName);
+                }}
                 className="h-7 w-7 md:h-8 md:w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
               >
                 <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -314,6 +362,21 @@ export const StockHealthChart = () => {
         loading={searchLoading}
         productName={selectedProduct}
       />
+
+      {selectedItem && (
+        <ProductDetailModal
+          open={productModalOpen}
+          onOpenChange={setProductModalOpen}
+          itemName={selectedItem.itemName}
+          quantity={selectedItem.quantity}
+          onDelete={() => handleDeleteItem(selectedItem.itemId, selectedItem.itemName)}
+          onSearchSupplier={() => handleSearchSuppliers(selectedItem.itemName)}
+          bestDeal={supplierCache[selectedItem.itemName] || null}
+          searchLoading={searchLoading}
+          maxStock={MAX_STOCK}
+          reorderLevel={REORDER_LEVEL}
+        />
+      )}
     </div>
   );
 };
