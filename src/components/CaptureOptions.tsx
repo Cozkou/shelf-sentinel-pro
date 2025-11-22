@@ -16,11 +16,11 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col gap-3 p-6 animate-scale-in">
+        <div className="relative z-10 flex flex-col gap-3 p-6">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute -top-12 left-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute -top-12 left-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors animate-fade-in"
           >
             <X className="h-5 w-5" />
           </button>
@@ -31,7 +31,8 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
               onTakePhoto();
               onClose();
             }}
-            className="group relative overflow-hidden flex items-center gap-4 p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+            className="group relative overflow-hidden flex items-center gap-4 p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-xl hover:shadow-2xl hover:scale-105 transition-all animate-slide-up-curve"
+            style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
           >
             <div className="flex items-center justify-center h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm">
               <Camera className="h-7 w-7" />
@@ -51,7 +52,8 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
               onUploadPhoto();
               onClose();
             }}
-            className="group relative overflow-hidden flex items-center gap-4 p-6 rounded-2xl bg-card border-2 border-border/50 hover:border-primary/50 text-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            className="group relative overflow-hidden flex items-center gap-4 p-6 rounded-2xl bg-card border-2 border-border/50 hover:border-primary/50 text-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all animate-slide-up-curve"
+            style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
           >
             <div className="flex items-center justify-center h-14 w-14 rounded-full bg-muted">
               <Upload className="h-7 w-7 text-primary" />
