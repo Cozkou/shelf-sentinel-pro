@@ -148,13 +148,12 @@ export const StockHealthChart = () => {
           </div>
         </div>
 
-      <div className="w-full flex justify-center">
-        <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full max-w-4xl">
-          <ResponsiveContainer>
-            <BarChart
-              data={itemsStock}
-              margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
-            >
+      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full">
+        <ResponsiveContainer>
+          <BarChart
+            data={itemsStock}
+            margin={{ top: 10, right: 10, left: 0, bottom: 20 }}
+          >
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis
                 dataKey="itemName"
@@ -207,10 +206,9 @@ export const StockHealthChart = () => {
                   />
                 }
               />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </div>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartContainer>
 
       {/* Stock status indicators */}
       <div className="space-y-2 md:space-y-3">
