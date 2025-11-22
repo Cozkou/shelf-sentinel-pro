@@ -19,9 +19,9 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
       />
       
       {/* Buttons */}
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50">
+      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-6">
         {/* Take Photo Button */}
-        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => {
               onTakePhoto();
@@ -35,7 +35,7 @@ export const CaptureOptions = ({ open, onClose, onTakePhoto, onUploadPhoto }: Ca
         </div>
 
         {/* Upload Photo Button */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => {
               onUploadPhoto();
