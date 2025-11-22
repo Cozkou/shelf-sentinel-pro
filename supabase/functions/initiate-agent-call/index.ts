@@ -13,8 +13,9 @@ serve(async (req) => {
   try {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
+    const ELEVENLABS_PHONE_ID = Deno.env.get('ELEVENLABS_PHONE_ID');
 
-    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID) {
+    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !ELEVENLABS_PHONE_ID) {
       throw new Error('ElevenLabs credentials not configured');
     }
 
@@ -23,6 +24,8 @@ serve(async (req) => {
     if (!phone_number) {
       throw new Error('Supplier phone number is required');
     }
+
+    console.log('Initiating call to:', phone_number);
 
     // Build the agent context/prompt with order details
     const agentPrompt = `You are a procurement assistant making an order call. 
@@ -44,15 +47,17 @@ Your task is to:
 3. Place the order if terms are acceptable`;
 
     // Initiate outbound call via ElevenLabs Twilio integration
-    const response = await fetch('https://api.elevenlabs.io/v1/twilio/outbound-call', {
+    console.log('Calling ElevenLabs Twilio endpoint with agent:', ELEVENLABS_AGENT_ID);
+    const response = await fetch('https://api.elevenlabs.io/v1/convai/conversation/twilio_outbound_call', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ELEVENLABS_API_KEY}`,
+        'xi-api-key': ELEVENLABS_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         agent_id: ELEVENLABS_AGENT_ID,
-        to_phone_number: phone_number, // Must be in E.164 format (e.g., +11234567890)
+        agent_phone_number_id: ELEVENLABS_PHONE_ID,
+        to_number: phone_number,
       }),
     });
 
@@ -63,13 +68,13 @@ Your task is to:
     }
 
     const result = await response.json();
-    console.log('Agent call initiated:', result);
+    console.log('ElevenLabs call response:', result);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        session_id: result.session_id || result.id,
-        message: 'Voice agent call initiated'
+        call_id: result.callSid || result.conversation_id,
+        message: result.message || 'Voice agent call initiated successfully'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
