@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import type { ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2 } from "lucide-react";
+import { Trash2, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -96,6 +96,12 @@ export const StockHealthChart = () => {
     }
   };
 
+  const getBarColor = (quantity: number) => {
+    if (quantity <= REORDER_LEVEL) return 'rgb(234, 179, 8)'; // yellow for low stock
+    if (quantity >= MAX_STOCK) return 'rgb(59, 130, 246)'; // blue for max stock
+    return 'rgb(34, 197, 94)'; // green for good stock
+  };
+
   if (loading) {
     return (
       <Card className="p-8 bg-gradient-to-br from-card to-accent/5 border-border/50 text-center">
@@ -181,9 +187,12 @@ export const StockHealthChart = () => {
 
             <Bar
               dataKey="quantity"
-              fill="hsl(var(--primary))"
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {itemsStock.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getBarColor(entry.quantity)} />
+              ))}
+            </Bar>
 
             <ChartTooltip
               content={
@@ -215,14 +224,27 @@ export const StockHealthChart = () => {
             >
               <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
               {item.quantity <= REORDER_LEVEL && (
-                <motion.span
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-[9px] md:text-[10px] font-normal bg-yellow-500/10 text-yellow-600/80 dark:text-yellow-400/70 px-1.5 py-0.5 rounded whitespace-nowrap"
-                >
-                  Low Stock
-                </motion.span>
+                <div className="flex items-center gap-1.5">
+                  <motion.span
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-[9px] md:text-[10px] font-normal bg-yellow-500/10 text-yellow-600/80 dark:text-yellow-400/70 px-1.5 py-0.5 rounded whitespace-nowrap"
+                  >
+                    Low Stock
+                  </motion.span>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2, delay: 0.1 }}
+                    className="h-6 w-6 md:h-7 md:w-7 flex items-center justify-center rounded-full bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400 transition-colors"
+                    onClick={() => toast.info('Call supplier feature coming soon!')}
+                  >
+                    <Phone className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                  </motion.button>
+                </div>
               )}
               {item.quantity > REORDER_LEVEL && item.quantity < MAX_STOCK && (
                 <motion.span
