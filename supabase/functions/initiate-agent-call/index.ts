@@ -14,6 +14,7 @@ serve(async (req) => {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
     const ELEVENLABS_PHONE_ID = Deno.env.get('ELEVENLABS_PHONE_ID');
+    const TEST_PHONE_NUMBER = Deno.env.get('TEST_PHONE_NUMBER');
 
     if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !ELEVENLABS_PHONE_ID) {
       throw new Error('ElevenLabs credentials not configured');
@@ -21,12 +22,15 @@ serve(async (req) => {
 
     const { supplier_info, order_details, phone_number } = await req.json();
 
-    if (!phone_number) {
-      throw new Error('Supplier phone number is required');
+    // Use test number if configured, otherwise use supplier's number
+    let phoneToCall = TEST_PHONE_NUMBER || phone_number;
+    
+    if (!phoneToCall) {
+      throw new Error('No phone number available');
     }
 
     // Convert UK phone number to E.164 format if needed
-    let formattedPhone = phone_number.replace(/\s+/g, ''); // Remove spaces
+    let formattedPhone = phoneToCall.replace(/\s+/g, ''); // Remove spaces
     if (formattedPhone.startsWith('0')) {
       // UK number starting with 0, convert to +44
       formattedPhone = '+44' + formattedPhone.substring(1);
@@ -35,7 +39,7 @@ serve(async (req) => {
       formattedPhone = '+' + formattedPhone;
     }
 
-    console.log('Initiating call to:', formattedPhone);
+    console.log('Initiating call to:', formattedPhone, TEST_PHONE_NUMBER ? '(TEST NUMBER)' : '(SUPPLIER NUMBER)');
 
     // Build the agent context/prompt with order details
     const agentPrompt = `You are a procurement assistant making an order call. 
