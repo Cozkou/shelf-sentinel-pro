@@ -57,16 +57,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
       {/* Floating Oval Header */}
-      <div className="fixed top-4 left-4 right-4 z-50 sm:top-6 sm:left-6 sm:right-6">
+      <div className="fixed top-2 left-4 right-4 z-50 sm:top-3 sm:left-6 sm:right-6">
         <header className="mx-auto max-w-5xl backdrop-blur-xl bg-background/70 border border-border/50 rounded-full shadow-lg px-6 py-4 sm:px-8 sm:py-5">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-xl font-bold tracking-tight font-space-grotesk sm:text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               MyStock
             </h1>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm hover:bg-accent/50 rounded-full">
-              <LogOut className="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-              <span className="sm:hidden">Out</span>
+            <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </header>
