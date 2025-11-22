@@ -119,18 +119,18 @@ export const StockHealthChart = () => {
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-accent/5 border-border/50">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-        <h3 className="text-lg font-semibold text-foreground">
+    <Card className="p-4 md:p-6 bg-gradient-to-br from-card to-accent/5 border-0 md:border md:border-border/50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 md:mb-6 gap-2 md:gap-3">
+        <h3 className="text-base md:text-lg font-semibold text-foreground">
           Current Stock Levels
         </h3>
-        <div className="flex gap-2 sm:gap-3 text-xs flex-wrap">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10">
-            <div className="w-2 h-2 rounded-full bg-red-500" />
+        <div className="flex gap-2 text-[10px] md:text-xs flex-wrap">
+          <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-red-500/10">
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500" />
             <span className="text-muted-foreground font-medium">Max: {MAX_STOCK}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10">
-            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+          <div className="flex items-center gap-1 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full bg-yellow-500/10">
+            <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-yellow-500" />
             <span className="text-muted-foreground font-medium">Reorder: {REORDER_LEVEL}</span>
           </div>
         </div>
@@ -196,33 +196,33 @@ export const StockHealthChart = () => {
       </ChartContainer>
 
       {/* Stock status indicators */}
-      <div className="mt-6 space-y-3">
+      <div className="mt-4 md:mt-6 space-y-2 md:space-y-3">
         {itemsStock.map((item) => (
-          <div key={item.itemId} className="flex items-center gap-2 p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/30">
-            <span className="font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
+          <div key={item.itemId} className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border-0 md:border md:border-border/30">
+            <span className="text-sm md:text-base font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
             {item.quantity <= REORDER_LEVEL && (
-              <span className="text-[10px] font-normal bg-yellow-500/10 text-yellow-600/80 dark:text-yellow-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
+              <span className="text-[9px] md:text-[10px] font-normal bg-yellow-500/10 text-yellow-600/80 dark:text-yellow-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 Low Stock
               </span>
             )}
             {item.quantity > REORDER_LEVEL && item.quantity < MAX_STOCK && (
-              <span className="text-[10px] font-normal bg-green-500/10 text-green-600/80 dark:text-green-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
+              <span className="text-[9px] md:text-[10px] font-normal bg-green-500/10 text-green-600/80 dark:text-green-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 Good
               </span>
             )}
             {item.quantity >= MAX_STOCK && (
-              <span className="text-[10px] font-normal bg-blue-500/10 text-blue-600/80 dark:text-blue-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
+              <span className="text-[9px] md:text-[10px] font-normal bg-blue-500/10 text-blue-600/80 dark:text-blue-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 At Max
               </span>
             )}
-            <span className="text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">{item.quantity} units</span>
+            <span className="text-xs md:text-sm font-semibold text-foreground tabular-nums whitespace-nowrap">{item.quantity} units</span>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => handleDeleteItem(item.itemId, item.itemName)}
-              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+              className="h-7 w-7 md:h-8 md:w-8 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </div>
         ))}
