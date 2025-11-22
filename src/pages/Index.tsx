@@ -8,7 +8,6 @@ import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
 import { OrdersSection } from "@/components/OrdersSection";
-import { AgentChatbox } from "@/components/AgentChatbox";
 import { BottomNav } from "@/components/BottomNav";
 import { CaptureOptions } from "@/components/CaptureOptions";
 import CameraCapture from "@/components/CameraCapture";
@@ -175,13 +174,6 @@ const Index = () => {
                 Recent Orders
               </h3>
               <OrdersSection />
-            </section>
-
-            <section>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
-                AI Agent Conversations
-              </h3>
-              <AgentChatbox />
             </section>
 
             <section>
