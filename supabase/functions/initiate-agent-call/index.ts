@@ -60,29 +60,82 @@ Your task is to:
 2. Verify pricing and delivery timeline
 3. Place the order if terms are acceptable`;
 
-    // Initiate outbound call via ElevenLabs Twilio integration
+    // Build conversation starter message
+    const conversationStarter = `Hello, I'm calling from ${supplier_info.supplier_name} regarding an order for ${order_details.quantity_needed} units of ${order_details.product_name}. Can you confirm availability and pricing?`;
+
+    console.log('Agent Prompt:', agentPrompt);
+    console.log('Conversation Starter:', conversationStarter);
     console.log('Calling ElevenLabs API with agent:', ELEVENLABS_AGENT_ID);
+    console.log('Phone Number ID:', ELEVENLABS_PHONE_ID);
+    console.log('To Number:', formattedPhone);
+
+    // Initiate outbound call via ElevenLabs Twilio integration
+    // 
+    // IMPORTANT: The agent must be pre-configured in the ElevenLabs dashboard with:
+    // 1. Appropriate instructions/prompt for procurement calls
+    // 2. The agent should be assigned to the phone number (ELEVENLABS_PHONE_ID)
+    // 3. The phone number must be imported from Twilio in the ElevenLabs dashboard
+    //
+    // The conversation_starter parameter may or may not be supported depending on API version.
+    // If the API rejects it, remove it and ensure the agent is properly configured in the dashboard.
+    const requestBody: any = {
+      agent_id: ELEVENLABS_AGENT_ID,
+      agent_phone_number_id: ELEVENLABS_PHONE_ID,
+      to_number: formattedPhone,
+    };
+
+    // Try to pass conversation starter if API supports it
+    // If you get an error about unsupported parameters, remove this line
+    // and ensure the agent instructions are set in the ElevenLabs dashboard
+    requestBody.conversation_starter = conversationStarter;
+    
+    // Alternative parameter names that might be supported (uncomment to try):
+    // requestBody.initial_message = conversationStarter;
+    // requestBody.context = agentPrompt;
+
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
       method: 'POST',
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        agent_id: ELEVENLABS_AGENT_ID,
-        agent_phone_number_id: ELEVENLABS_PHONE_ID,
-        to_number: formattedPhone,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
+    const responseText = await response.text();
+    console.log('ElevenLabs API response status:', response.status);
+    console.log('ElevenLabs API response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('ElevenLabs API response body:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('ElevenLabs API error:', errorText);
-      throw new Error(`ElevenLabs API failed: ${response.statusText}`);
+      console.error('ElevenLabs API error - Status:', response.status);
+      console.error('ElevenLabs API error - Body:', responseText);
+      
+      let errorMessage = `ElevenLabs API failed: ${response.status} ${response.statusText}`;
+      try {
+        const errorJson = JSON.parse(responseText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+        console.error('Parsed error:', errorJson);
+      } catch (e) {
+        // If response is not JSON, use the text as error message
+        if (responseText) {
+          errorMessage = responseText;
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
-    const result = await response.json();
-    console.log('ElevenLabs call response:', result);
+    let result;
+    try {
+      result = JSON.parse(responseText);
+      console.log('ElevenLabs call response (parsed):', JSON.stringify(result, null, 2));
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', e);
+      throw new Error(`Invalid response from ElevenLabs API: ${responseText}`);
+    }
 
     return new Response(
       JSON.stringify({ 
