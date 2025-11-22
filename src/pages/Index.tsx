@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { Camera, Mic, TrendingUp, ArrowRight, LogOut, Archive } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { PhotoArchive } from "@/components/PhotoArchive";
+import { StockAlert } from "@/components/StockAlert";
+import { StockHealthChart } from "@/components/StockHealthChart";
+import { PredictionsTimeline } from "@/components/PredictionsTimeline";
+import { QuickActions } from "@/components/QuickActions";
+import { AgentActivityFeed } from "@/components/AgentActivityFeed";
+import { OrdersSection } from "@/components/OrdersSection";
 
 const Index = () => {
   const { toast } = useToast();
@@ -104,126 +109,51 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-12">
-        {/* Hero Section */}
-        <section className="mb-8 space-y-3 sm:mb-16 sm:space-y-4">
-          <h2 className="text-2xl font-light tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Predictive inventory management
-          </h2>
-          <p className="max-w-2xl text-base font-light text-muted-foreground sm:text-lg">
-            Voice-driven tracking that predicts shortages before they impact your business.
-          </p>
+      <main className="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-8">
+        {/* Top Alert */}
+        <section className="mb-4 sm:mb-6">
+          <StockAlert />
         </section>
 
-        {/* Action Cards */}
-        <section className="mb-8 grid gap-3 sm:mb-16 sm:grid-cols-2 sm:gap-4">
-          <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
-            <button 
-              onClick={handleCameraCapture}
-              className="w-full p-5 text-left sm:p-8"
-            >
-              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary sm:mb-6 sm:h-12 sm:w-12">
-                <Camera className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
-              </div>
-              <h3 className="mb-2 text-lg font-medium text-foreground sm:text-xl">
-                Photo Check-In
-              </h3>
-              <p className="mb-3 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
-                Daily shelf snapshots for automated tracking
-              </p>
-              <div className="inline-flex items-center text-xs font-medium text-foreground transition-transform group-hover:translate-x-1 sm:text-sm">
-                Start Capture
-                <ArrowRight className="ml-1.5 h-3 w-3 sm:ml-2 sm:h-4 sm:w-4" />
-              </div>
-            </button>
-          </Card>
-
-          <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
-            <button 
-              onClick={handleVoiceInput}
-              className="w-full p-5 text-left sm:p-8"
-            >
-              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-secondary sm:mb-6 sm:h-12 sm:w-12">
-                <Mic className="h-4 w-4 text-foreground sm:h-5 sm:w-5" />
-              </div>
-              <h3 className="mb-2 text-lg font-medium text-foreground sm:text-xl">
-                Voice Update
-              </h3>
-              <p className="mb-3 text-xs text-muted-foreground sm:mb-4 sm:text-sm">
-                Quick verbal inventory notes and adjustments
-              </p>
-              <div className="inline-flex items-center text-xs font-medium text-foreground transition-transform group-hover:translate-x-1 sm:text-sm">
-                {isRecording ? "Stop Recording" : "Start Recording"}
-                <ArrowRight className="ml-1.5 h-3 w-3 sm:ml-2 sm:h-4 sm:w-4" />
-              </div>
-            </button>
-          </Card>
+        {/* Dashboard Grid */}
+        <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
+          <StockHealthChart />
+          <PredictionsTimeline />
         </section>
 
-        {/* Features Section */}
-        <section className="mb-8 sm:mb-16">
-          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
-            <TrendingUp className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
-              Intelligence Layer
-            </h3>
-          </div>
+        {/* Quick Actions */}
+        <section className="mb-4 sm:mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
+            Quick Actions
+          </h3>
+          <QuickActions 
+            onCameraCapture={handleCameraCapture}
+            onVoiceInput={handleVoiceInput}
+            isRecording={isRecording}
+          />
+        </section>
 
-          <div className="grid gap-6 sm:grid-cols-3 sm:gap-8">
-            <div className="space-y-1.5 sm:space-y-2">
-              <div className="text-xl font-light text-foreground sm:text-2xl">01</div>
-              <h4 className="text-sm font-medium text-foreground sm:text-base">Pattern Recognition</h4>
-              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Agent analyzes daily check-ins to build accurate usage curves
-              </p>
-            </div>
-
-            <div className="space-y-1.5 sm:space-y-2">
-              <div className="text-xl font-light text-foreground sm:text-2xl">02</div>
-              <h4 className="text-sm font-medium text-foreground sm:text-base">Shortage Prediction</h4>
-              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Forecasts stockouts with day-level precision based on trends
-              </p>
-            </div>
-
-            <div className="space-y-1.5 sm:space-y-2">
-              <div className="text-xl font-light text-foreground sm:text-2xl">03</div>
-              <h4 className="text-sm font-medium text-foreground sm:text-base">Automated Ordering</h4>
-              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Drafts orders, contacts suppliers, sends SMS approval requests
-              </p>
-            </div>
-          </div>
+        {/* Agent Activity & Orders */}
+        <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
+          <AgentActivityFeed />
+          <OrdersSection />
         </section>
 
         {/* Photo Upload Section */}
-        <section className="mb-8 sm:mb-16">
-          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
-            <Camera className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
-              Upload Snapshot
-            </h3>
-          </div>
+        <section className="mb-4 sm:mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
+            Upload Snapshot
+          </h3>
           <PhotoUpload onUploadComplete={() => setRefreshPhotos(prev => prev + 1)} />
         </section>
 
         {/* Photo Archive Section */}
-        <section className="mb-8 sm:mb-16">
-          <div className="mb-4 flex items-center gap-2 sm:mb-8 sm:gap-3">
-            <Archive className="h-4 w-4 text-muted-foreground sm:h-5 sm:w-5" />
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground sm:text-sm">
-              Photo Archive
-            </h3>
-          </div>
+        <section className="mb-4 sm:mb-6">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
+            Photo Archive
+          </h3>
           <PhotoArchive refreshTrigger={refreshPhotos} />
         </section>
-
-        {/* Install CTA */}
-        <Card className="border border-border bg-secondary/30 p-4 text-center sm:p-8">
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            <span className="font-medium text-foreground">Mobile optimized.</span> Install to home screen for instant access.
-          </p>
-        </Card>
       </main>
     </div>
   );
