@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Camera, Mic, Package, TrendingUp } from "lucide-react";
+import { Camera, Mic, TrendingUp, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -19,7 +19,6 @@ const Index = () => {
         description: "Snap a photo of your inventory shelf",
       });
       
-      // Stop the stream for now (we'll implement full camera later)
       stream.getTracks().forEach(track => track.stop());
     } catch (error) {
       toast({
@@ -40,7 +39,6 @@ const Index = () => {
         description: isRecording ? "Processing your voice note..." : "Speak your inventory update",
       });
       
-      // Stop the stream for now (we'll implement full recording later)
       stream.getTracks().forEach(track => track.stop());
     } catch (error) {
       toast({
@@ -52,79 +50,121 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="mx-auto max-w-4xl space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2 py-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Package className="h-10 w-10 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Inventory Sentinel</h1>
-          </div>
-          <p className="text-lg text-muted-foreground">
-            AI-powered inventory tracking that predicts shortages before they happen
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <Camera className="h-8 w-8 text-primary" />
-              <div>
-                <h3 className="text-xl font-semibold text-foreground">Photo Check-In</h3>
-                <p className="text-sm text-muted-foreground">Snap your inventory shelf daily</p>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto max-w-5xl px-6 py-5">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              Inventory Sentinel
+            </h1>
+            <div className="text-sm text-muted-foreground">
+              AI-Powered Tracking
             </div>
-            <Button 
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="mx-auto max-w-5xl px-6 py-12">
+        {/* Hero Section */}
+        <section className="mb-16 space-y-4">
+          <h2 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl">
+            Predictive inventory management
+          </h2>
+          <p className="max-w-2xl text-lg font-light text-muted-foreground">
+            Voice-driven tracking that predicts shortages before they impact your business.
+          </p>
+        </section>
+
+        {/* Action Cards */}
+        <section className="mb-16 grid gap-4 sm:grid-cols-2">
+          <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
+            <button 
               onClick={handleCameraCapture}
-              className="w-full"
-              size="lg"
+              className="w-full p-8 text-left"
             >
-              Open Camera
-            </Button>
-          </Card>
-
-          <Card className="p-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <Mic className="h-8 w-8 text-primary" />
-              <div>
-                <h3 className="text-xl font-semibold text-foreground">Voice Update</h3>
-                <p className="text-sm text-muted-foreground">Quick voice inventory notes</p>
+              <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                <Camera className="h-5 w-5 text-foreground" />
               </div>
-            </div>
-            <Button 
-              onClick={handleVoiceInput}
-              className="w-full"
-              size="lg"
-              variant={isRecording ? "destructive" : "default"}
-            >
-              {isRecording ? "Stop Recording" : "Start Recording"}
-            </Button>
+              <h3 className="mb-2 text-xl font-medium text-foreground">
+                Photo Check-In
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Daily shelf snapshots for automated tracking
+              </p>
+              <div className="inline-flex items-center text-sm font-medium text-foreground transition-transform group-hover:translate-x-1">
+                Start Capture
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </div>
+            </button>
           </Card>
-        </div>
 
-        {/* Features Overview */}
-        <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <TrendingUp className="h-6 w-6 text-primary" />
-            <h3 className="text-xl font-semibold text-foreground">Smart Predictions</h3>
-          </div>
-          <div className="space-y-3 text-muted-foreground">
-            <p>• Agent builds inventory curves from your daily check-ins</p>
-            <p>• Predicts when items will run out based on usage patterns</p>
-            <p>• Automatically drafts orders and contacts suppliers</p>
-            <p>• Sends SMS approvals for one-tap ordering</p>
-          </div>
-        </Card>
+          <Card className="group relative overflow-hidden border border-border bg-card transition-all hover:shadow-md">
+            <button 
+              onClick={handleVoiceInput}
+              className="w-full p-8 text-left"
+            >
+              <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary">
+                <Mic className="h-5 w-5 text-foreground" />
+              </div>
+              <h3 className="mb-2 text-xl font-medium text-foreground">
+                Voice Update
+              </h3>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Quick verbal inventory notes and adjustments
+              </p>
+              <div className="inline-flex items-center text-sm font-medium text-foreground transition-transform group-hover:translate-x-1">
+                {isRecording ? "Stop Recording" : "Start Recording"}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </div>
+            </button>
+          </Card>
+        </section>
 
-        {/* Install Prompt */}
-        <Card className="p-6 bg-primary/5 border-primary/20">
-          <p className="text-center text-sm text-muted-foreground">
-            💡 <strong>Pro tip:</strong> Install this app to your home screen for quick access!<br/>
-            Tap your browser menu → "Add to Home Screen"
+        {/* Features Section */}
+        <section className="mb-16">
+          <div className="mb-8 flex items-center gap-3">
+            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              Intelligence Layer
+            </h3>
+          </div>
+
+          <div className="grid gap-8 sm:grid-cols-3">
+            <div className="space-y-2">
+              <div className="text-2xl font-light text-foreground">01</div>
+              <h4 className="font-medium text-foreground">Pattern Recognition</h4>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Agent analyzes daily check-ins to build accurate usage curves
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-2xl font-light text-foreground">02</div>
+              <h4 className="font-medium text-foreground">Shortage Prediction</h4>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Forecasts stockouts with day-level precision based on trends
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-2xl font-light text-foreground">03</div>
+              <h4 className="font-medium text-foreground">Automated Ordering</h4>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Drafts orders, contacts suppliers, sends SMS approval requests
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Install CTA */}
+        <Card className="border border-border bg-secondary/30 p-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Mobile optimized.</span> Install to home screen for instant access.
           </p>
         </Card>
-      </div>
+      </main>
     </div>
   );
 };
