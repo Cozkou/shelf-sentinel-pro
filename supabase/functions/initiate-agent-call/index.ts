@@ -14,60 +14,25 @@ serve(async (req) => {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
     const ELEVENLABS_PHONE_ID = Deno.env.get('ELEVENLABS_PHONE_ID');
-    const TEST_PHONE_NUMBER = Deno.env.get('TEST_PHONE_NUMBER');
 
     if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !ELEVENLABS_PHONE_ID) {
       throw new Error('ElevenLabs credentials not configured');
     }
 
-    const { supplier_info, order_details, phone_number } = await req.json();
+    const { customerName, orderDetails } = await req.json();
 
-    // Use test number if configured, otherwise use supplier's number
-    let phoneToCall = TEST_PHONE_NUMBER || phone_number;
-    
-    if (!phoneToCall) {
-      throw new Error('No phone number available');
+    if (!customerName || !orderDetails) {
+      throw new Error('customerName and orderDetails are required');
     }
 
-    // Convert UK phone number to E.164 format if needed
-    let formattedPhone = phoneToCall.replace(/\s+/g, ''); // Remove spaces
-    if (formattedPhone.startsWith('0')) {
-      // UK number starting with 0, convert to +44
-      formattedPhone = '+44' + formattedPhone.substring(1);
-    } else if (!formattedPhone.startsWith('+')) {
-      // Add + if missing
-      formattedPhone = '+' + formattedPhone;
-    }
+    console.log('Initiating call with customerName:', customerName, 'orderDetails:', orderDetails);
 
-    console.log('Initiating call to:', formattedPhone, TEST_PHONE_NUMBER ? '(TEST NUMBER)' : '(SUPPLIER NUMBER)');
+    // Build conversation starter message with customerName and orderDetails
+    const conversationStarter = `Hello, I'm calling on behalf of ${customerName} regarding an order for ${orderDetails}. Can you help me with this?`;
 
-    // Build the agent context/prompt with order details
-    const agentPrompt = `You are a procurement assistant making an order call. 
-    
-Order Details:
-- Product: ${order_details.product_name}
-- Quantity Needed: ${order_details.quantity_needed} units
-- Expected Price: $${order_details.price_per_unit} per unit
-- Total Cost: $${order_details.total_cost}
-
-Supplier Information:
-- Name: ${supplier_info.supplier_name}
-- Location: ${supplier_info.location}
-- Selection Reasoning: ${supplier_info.reasoning}
-
-Your task is to:
-1. Confirm the supplier can fulfill the order
-2. Verify pricing and delivery timeline
-3. Place the order if terms are acceptable`;
-
-    // Build conversation starter message
-    const conversationStarter = `Hello, I'm calling from ${supplier_info.supplier_name} regarding an order for ${order_details.quantity_needed} units of ${order_details.product_name}. Can you confirm availability and pricing?`;
-
-    console.log('Agent Prompt:', agentPrompt);
     console.log('Conversation Starter:', conversationStarter);
     console.log('Calling ElevenLabs API with agent:', ELEVENLABS_AGENT_ID);
     console.log('Phone Number ID:', ELEVENLABS_PHONE_ID);
-    console.log('To Number:', formattedPhone);
 
     // Initiate outbound call via ElevenLabs Twilio integration
     // 
@@ -81,9 +46,12 @@ Your task is to:
     const requestBody: any = {
       agent_id: ELEVENLABS_AGENT_ID,
       agent_phone_number_id: ELEVENLABS_PHONE_ID,
-      to_number: formattedPhone,
+      customerName: customerName,
+      orderDetails: orderDetails,
     };
 
+    // Pass customerName and orderDetails as parameters
+    // These will be used in the first message/conversation starter
     // Try to pass conversation starter if API supports it
     // If you get an error about unsupported parameters, remove this line
     // and ensure the agent instructions are set in the ElevenLabs dashboard
@@ -91,7 +59,6 @@ Your task is to:
     
     // Alternative parameter names that might be supported (uncomment to try):
     // requestBody.initial_message = conversationStarter;
-    // requestBody.context = agentPrompt;
 
     console.log('Request body:', JSON.stringify(requestBody, null, 2));
 

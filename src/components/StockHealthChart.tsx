@@ -257,29 +257,10 @@ export const StockHealthChart = () => {
     });
 
     try {
-      const currentItem = itemsStock.find(item => item.itemName === itemName);
-      const currentQuantity = currentItem?.quantity || 0;
-      
-      // Get phone number from supplier (ensure it's in E.164 format)
-      const phoneNumber = bestDeal.phone || bestDeal.contact_phone;
-      if (!phoneNumber) {
-        throw new Error('Supplier phone number not available');
-      }
-
       const { data: callData, error: callError } = await supabase.functions.invoke('initiate-agent-call', {
         body: {
-          supplier_info: {
-            supplier_name: bestDeal.supplier_name,
-            location: bestDeal.location,
-            reasoning: bestDeal.reasoning,
-          },
-          order_details: {
-            product_name: itemName,
-            quantity_needed: REORDER_LEVEL - currentQuantity,
-            price_per_unit: bestDeal.price_per_unit || 0,
-            total_cost: (REORDER_LEVEL - currentQuantity) * (bestDeal.price_per_unit || 0),
-          },
-          phone_number: phoneNumber,
+          customerName: "Bugatt",
+          orderDetails: "3 green veed pillows",
         }
       });
 
