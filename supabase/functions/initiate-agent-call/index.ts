@@ -13,8 +13,9 @@ serve(async (req) => {
   try {
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     const ELEVENLABS_AGENT_ID = Deno.env.get('ELEVENLABS_AGENT_ID');
+    const ELEVENLABS_PHONE_ID = Deno.env.get('ELEVENLABS_PHONE_ID');
 
-    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID) {
+    if (!ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !ELEVENLABS_PHONE_ID) {
       throw new Error('ElevenLabs credentials not configured');
     }
 
@@ -39,8 +40,8 @@ Your task is to:
 2. Verify pricing and delivery timeline
 3. Place the order if terms are acceptable`;
 
-    // Create a conversational AI session with ElevenLabs
-    const response = await fetch('https://api.elevenlabs.io/v1/convai/agent/call', {
+    // Initiate phone call via ElevenLabs with supplier phone number
+    const response = await fetch(`https://api.elevenlabs.io/v1/convai/conversation?agent_id=${ELEVENLABS_AGENT_ID}`, {
       method: 'POST',
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,
@@ -48,6 +49,7 @@ Your task is to:
       },
       body: JSON.stringify({
         agent_id: ELEVENLABS_AGENT_ID,
+        phone_number_id: ELEVENLABS_PHONE_ID,
         prompt: agentPrompt,
         metadata: {
           order_id: `order_${Date.now()}`,
