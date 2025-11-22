@@ -201,24 +201,39 @@ export const SimplePhotoCapture = ({ onPhotoSaved }: SimplePhotoCaptureProps) =>
       />
       
       <Card 
-        className={`group relative overflow-hidden border border-border/50 bg-gradient-to-br from-card to-accent/10 transition-all hover:shadow-lg hover:border-primary/30 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`group relative overflow-hidden border-2 transition-all ${
+          isProcessing 
+            ? 'border-primary/30 bg-gradient-to-br from-card to-accent/10 opacity-50 cursor-not-allowed' 
+            : 'border-primary/40 bg-gradient-to-br from-primary/5 to-accent/20 hover:border-primary hover:shadow-xl hover:shadow-primary/20 cursor-pointer hover:scale-[1.02]'
+        }`}
       >
         <button 
           onClick={handleClick}
           disabled={isProcessing}
-          className="w-full p-8 sm:p-10 text-center disabled:cursor-not-allowed"
+          className="w-full p-10 sm:p-12 text-center disabled:cursor-not-allowed relative"
         >
-          {isProcessing && (
-            <div className="mb-4 flex justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          )}
-          <h3 className="mb-2 text-xl font-semibold text-foreground sm:text-2xl">
-            {isProcessing ? "Processing..." : "Take Photo"}
-          </h3>
-          <p className="text-sm text-muted-foreground sm:text-base">
-            {isProcessing ? "Analyzing inventory with AI..." : "Capture inventory snapshot with AI analysis"}
-          </p>
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_85%)] pointer-events-none" />
+          
+          <div className="relative">
+            {isProcessing && (
+              <div className="mb-4 flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            )}
+            <h3 className="mb-3 text-2xl font-bold text-foreground sm:text-3xl">
+              {isProcessing ? "Processing..." : "📸 Take Photo"}
+            </h3>
+            <p className="text-base text-muted-foreground sm:text-lg mb-4">
+              {isProcessing ? "Analyzing inventory with AI..." : "Click anywhere to capture inventory snapshot"}
+            </p>
+            {!isProcessing && (
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold text-sm shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105">
+                Tap to Capture
+                <span className="text-lg">→</span>
+              </div>
+            )}
+          </div>
         </button>
       </Card>
     </>
