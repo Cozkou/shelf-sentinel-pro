@@ -16,7 +16,6 @@ import CameraCapture from "@/components/CameraCapture";
 
 const Index = () => {
   const { toast } = useToast();
-  const [isRecording, setIsRecording] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [refreshPhotos, setRefreshPhotos] = useState(0);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -39,25 +38,6 @@ const Index = () => {
     setIsCameraOpen(true);
   };
 
-  const handleVoiceInput = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setIsRecording(!isRecording);
-      
-      toast({
-        title: isRecording ? "Recording Stopped" : "Recording Started",
-        description: isRecording ? "Processing your voice note..." : "Speak your inventory update",
-      });
-      
-      stream.getTracks().forEach(track => track.stop());
-    } catch (error) {
-      toast({
-        title: "Microphone Access Denied",
-        description: "Please allow microphone access for voice check-ins",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -106,15 +86,13 @@ const Index = () => {
           <PredictionsTimeline />
         </section>
 
-        {/* Quick Actions */}
+        {/* Photo Capture */}
         <section className="mb-4 sm:mb-6">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
-            Quick Actions
+            Capture Photo
           </h3>
           <QuickActions 
             onCameraCapture={handleCameraCapture}
-            onVoiceInput={handleVoiceInput}
-            isRecording={isRecording}
           />
         </section>
 
@@ -122,14 +100,6 @@ const Index = () => {
         <section className="mb-4 sm:mb-6 grid gap-3 sm:gap-4 sm:grid-cols-2">
           <AgentChatbox />
           <OrdersSection />
-        </section>
-
-        {/* Photo Upload Section */}
-        <section className="mb-4 sm:mb-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3 sm:mb-4">
-            Upload Snapshot
-          </h3>
-          <PhotoUpload onUploadComplete={() => setRefreshPhotos(prev => prev + 1)} />
         </section>
 
         {/* Photo Archive Section */}
