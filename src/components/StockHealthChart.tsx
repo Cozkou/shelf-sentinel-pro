@@ -1,5 +1,7 @@
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import type { ChartConfig } from "@/components/ui/chart";
 
 const data = [
   { day: "Mon", healthy: 42, low: 24, critical: 2 },
@@ -11,58 +13,87 @@ const data = [
   { day: "Sun", healthy: 42, low: 24, critical: 2 },
 ];
 
+const chartConfig = {
+  healthy: {
+    label: "Healthy Stock",
+    color: "hsl(142, 76%, 36%)",
+  },
+  low: {
+    label: "Low Stock",
+    color: "hsl(var(--primary))",
+  },
+  critical: {
+    label: "Critical",
+    color: "hsl(var(--destructive))",
+  },
+} satisfies ChartConfig;
+
 export const StockHealthChart = () => {
   return (
-    <Card className="p-4 sm:p-6">
-      <h3 className="text-sm font-medium text-foreground mb-4">Stock Health</h3>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+    <Card className="p-6 bg-gradient-to-br from-background to-muted/20 border-border/40">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Stock Health Overview</h3>
+          <p className="text-sm text-muted-foreground mt-1">Weekly inventory status</p>
+        </div>
+      </div>
+      <ChartContainer config={chartConfig} className="h-[280px] w-full">
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="healthyGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0}/>
+            </linearGradient>
+            <linearGradient id="lowGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+            </linearGradient>
+            <linearGradient id="criticalGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
           <XAxis 
             dataKey="day" 
             stroke="hsl(var(--muted-foreground))"
-            style={{ fontSize: '12px' }}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            tickLine={false}
+            axisLine={false}
+            style={{ fontSize: '12px', fontWeight: 500 }}
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
-            style={{ fontSize: '12px' }}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
+            tickLine={false}
+            axisLine={false}
+            style={{ fontSize: '12px', fontWeight: 500 }}
           />
-          <Tooltip 
-            contentStyle={{
-              backgroundColor: 'hsl(var(--background))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '8px',
-            }}
-          />
-          <Legend 
-            wrapperStyle={{
-              fontSize: '12px',
-              paddingTop: '10px',
-            }}
-          />
-          <Line 
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartLegend content={<ChartLegendContent />} />
+          <Area 
             type="monotone" 
             dataKey="healthy" 
             stroke="hsl(142, 76%, 36%)" 
-            strokeWidth={2}
-            name="Healthy"
+            fill="url(#healthyGradient)"
+            strokeWidth={2.5}
           />
-          <Line 
+          <Area 
             type="monotone" 
             dataKey="low" 
             stroke="hsl(var(--primary))" 
-            strokeWidth={2}
-            name="Low"
+            fill="url(#lowGradient)"
+            strokeWidth={2.5}
           />
-          <Line 
+          <Area 
             type="monotone" 
             dataKey="critical" 
             stroke="hsl(var(--destructive))" 
-            strokeWidth={2}
-            name="Critical"
+            fill="url(#criticalGradient)"
+            strokeWidth={2.5}
           />
-        </LineChart>
-      </ResponsiveContainer>
+        </AreaChart>
+      </ChartContainer>
     </Card>
   );
 };
