@@ -10,7 +10,7 @@ interface ItemStock {
   quantity: number;
 }
 
-const MAX_STOCK = 20;
+const MAX_STOCK = 5;
 const REORDER_LEVEL = 3;
 
 export const StockHealthChart = () => {
@@ -97,19 +97,20 @@ export const StockHealthChart = () => {
   };
 
   return (
-    <Card className="p-4 bg-gradient-to-br from-card to-accent/5 border-border/50">
-      <h3 className="text-sm font-medium mb-4 text-foreground flex items-center gap-2">
-        📊 Current Stock Levels
-      </h3>
-
-      <div className="mb-4 flex flex-wrap gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-0.5 bg-red-500" />
-          <span className="text-muted-foreground">Maximum ({MAX_STOCK} units)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-0.5 bg-yellow-500" />
-          <span className="text-muted-foreground">Reorder Level ({REORDER_LEVEL} units)</span>
+    <Card className="p-6 bg-gradient-to-br from-card to-accent/5 border-border/50">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          📊 Current Stock Levels
+        </h3>
+        <div className="flex gap-3 text-xs">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10">
+            <div className="w-2 h-2 rounded-full bg-red-500" />
+            <span className="text-muted-foreground font-medium">Max: {MAX_STOCK}</span>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/10">
+            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            <span className="text-muted-foreground font-medium">Reorder: {REORDER_LEVEL}</span>
+          </div>
         </div>
       </div>
 
@@ -173,24 +174,24 @@ export const StockHealthChart = () => {
       </ChartContainer>
 
       {/* Stock status indicators */}
-      <div className="mt-4 grid gap-2">
+      <div className="mt-6 space-y-3">
         {itemsStock.map((item) => (
-          <div key={item.itemName} className="flex items-center justify-between text-sm">
-            <span className="font-medium">{item.itemName}</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{item.quantity} units</span>
+          <div key={item.itemName} className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/30">
+            <span className="font-medium text-foreground">{item.itemName}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-foreground tabular-nums">{item.quantity} units</span>
               {item.quantity <= REORDER_LEVEL && (
-                <span className="text-xs bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded">
+                <span className="text-xs font-medium bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
                   ⚠️ Low Stock
                 </span>
               )}
               {item.quantity > REORDER_LEVEL && item.quantity < MAX_STOCK && (
-                <span className="text-xs bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded">
+                <span className="text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
                   ✓ Good
                 </span>
               )}
               {item.quantity >= MAX_STOCK && (
-                <span className="text-xs bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">
+                <span className="text-xs font-medium bg-blue-500/20 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-full flex items-center gap-1.5">
                   📦 At Max
                 </span>
               )}
