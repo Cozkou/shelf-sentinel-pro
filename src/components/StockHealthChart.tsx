@@ -199,19 +199,19 @@ export const StockHealthChart = () => {
       <div className="mt-6 space-y-3">
         {itemsStock.map((item) => (
           <div key={item.itemId} className="flex items-center gap-2 p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/30">
-            <span className="font-medium text-foreground flex-1 min-w-0 truncate">{item.itemName}</span>
+            <span className="font-medium text-foreground flex-1 min-w-0">{item.itemName}</span>
             {item.quantity <= REORDER_LEVEL && (
-              <span className="text-xs font-medium bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full whitespace-nowrap">
+              <span className="text-[10px] font-normal bg-yellow-500/10 text-yellow-600/80 dark:text-yellow-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 Low Stock
               </span>
             )}
             {item.quantity > REORDER_LEVEL && item.quantity < MAX_STOCK && (
-              <span className="text-xs font-medium bg-green-500/20 text-green-700 dark:text-green-400 px-2 py-1 rounded-full whitespace-nowrap">
+              <span className="text-[10px] font-normal bg-green-500/10 text-green-600/80 dark:text-green-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 Good
               </span>
             )}
             {item.quantity >= MAX_STOCK && (
-              <span className="text-xs font-medium bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full whitespace-nowrap">
+              <span className="text-[10px] font-normal bg-blue-500/10 text-blue-600/80 dark:text-blue-400/70 px-1.5 py-0.5 rounded whitespace-nowrap">
                 At Max
               </span>
             )}
