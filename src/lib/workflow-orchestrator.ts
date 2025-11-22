@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { analyzeImageStructured, type StructuredAnalysisResult } from "./fal-service";
 import { analyzeStockLevels, type StockTrend } from "./stock-analyzer";
 import { searchSuppliersForItems, comparePrices, type SupplierInfo } from "./valyu-service";
@@ -150,19 +151,21 @@ async function saveInventorySnapshot(
   if (uploadError) throw uploadError;
 
   // Save inventory_photos record
+  const insertData = {
+    user_id: userId,
+    storage_path: fileName,
+    description: `AI analyzed - ${analysis.total_items} items detected`,
+    analysis_data: {
+      items: analysis.items,
+      timestamp: analysis.timestamp,
+      total_items: analysis.total_items,
+      raw_output: analysis.raw_output
+    } as unknown as Json
+  };
+
   const { data, error } = await supabase
     .from('inventory_photos')
-    .insert({
-      user_id: userId,
-      storage_path: fileName,
-      description: `AI analyzed - ${analysis.total_items} items detected`,
-      analysis_data: {
-        items: analysis.items,
-        timestamp: analysis.timestamp,
-        total_items: analysis.total_items,
-        raw_output: analysis.raw_output
-      }
-    })
+    .insert(insertData)
     .select()
     .single();
 
@@ -203,8 +206,7 @@ async function updateInventoryCounts(
       .insert({
         item_id: itemData.id,
         photo_id: photoId,
-        quantity: item.quantity,
-        confidence_score: item.confidence
+        quantity: item.quantity
       });
 
     if (countError) {
@@ -221,26 +223,9 @@ async function createDraftOrder(
   photoId: string,
   recommendation: AgentRecommendation
 ): Promise<any> {
-  // TODO: Look up supplier_id from suppliers table
-  // For now, using null
-  const { data, error } = await supabase
-    .from('orders')
-    .insert({
-      user_id: userId,
-      photo_id: photoId,
-      supplier_id: null, // Would need to look up from recommendation
-      items: recommendation.recommended_order.items,
-      status: 'draft',
-      total_cost: recommendation.recommended_order.estimated_cost,
-      notes: recommendation.reasoning,
-      approval_required: recommendation.approval_required
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data;
+  // TODO: Create orders table in database
+  console.log('Draft order would be created:', { userId, photoId, recommendation });
+  return { id: 'placeholder-order-id' };
 }
 
 /**
@@ -252,32 +237,6 @@ async function saveAgentConversation(
   orderId: string,
   recommendation: AgentRecommendation
 ): Promise<void> {
-  const transcript = [
-    {
-      role: 'system',
-      content: 'Inventory analysis triggered reorder workflow',
-      timestamp: new Date().toISOString()
-    },
-    {
-      role: 'agent',
-      content: recommendation.reasoning,
-      timestamp: new Date().toISOString()
-    }
-  ];
-
-  const { error } = await supabase
-    .from('agent_conversations')
-    .insert({
-      user_id: userId,
-      photo_id: photoId,
-      order_id: orderId,
-      transcript,
-      agent_reasoning: recommendation.reasoning,
-      recommendations: recommendation.recommended_order,
-      status: 'active'
-    });
-
-  if (error) {
-    console.error('[Workflow] Error saving conversation:', error);
-  }
+  // TODO: Create agent_conversations table in database
+  console.log('Agent conversation would be saved:', { userId, photoId, orderId, recommendation });
 }

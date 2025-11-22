@@ -206,20 +206,11 @@ const Index = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-80 sm:w-96 p-0 bg-background border-border shadow-2xl z-[100]" 
+                  className="w-72 p-3 bg-background/95 backdrop-blur-xl border-border/50 shadow-lg z-[100]" 
                   align="end"
-                  sideOffset={8}
+                  sideOffset={12}
                 >
-                  <div className="border-b border-border px-4 py-3 bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4 text-destructive" />
-                      <h3 className="font-semibold text-sm">Stock Alerts</h3>
-                      <span className="ml-auto text-xs bg-destructive/20 text-destructive px-2 py-1 rounded-full font-medium">1 Alert</span>
-                    </div>
-                  </div>
-                  <div className="p-3 space-y-2 max-h-[400px] overflow-y-auto">
-                    <StockAlert />
-                  </div>
+                  <StockAlert />
                 </PopoverContent>
               </Popover>
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-accent/50 rounded-full">
