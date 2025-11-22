@@ -74,10 +74,10 @@ serve(async (req) => {
       body: JSON.stringify({
         query: `${productName} wholesale suppliers UK with contact information phone numbers`,
         search_type: 'web',
-        max_num_results: 8,
+        max_num_results: 5,
         response_length: 'short',
       }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(45000),
     });
 
     if (!searchResponse.ok) {
@@ -99,33 +99,18 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a data extraction specialist. Extract and structure supplier information from search results into clean JSON format.
+            content: `Extract supplier data and contact info efficiently.
 
-IMPORTANT: Look for phone numbers in the content. Common UK formats:
-- +44 1234 567890
-- 0800 123 4567
-- 01234 567890
-- (01234) 567890
+Extract:
+- supplier_name, website, location: "United Kingdom"
+- contact_email, contact_phone (UK formats: +44/0800/01234)
+- products: [{product_name, price (numeric), currency: "GBP", unit, availability}]
 
-Extract the following for each supplier:
-- supplier_name: Company name
-- website: Full URL
-- location: "United Kingdom"
-- contact_email: Email if found
-- contact_phone: UK phone number if found
-- products: Array of products with:
-  - product_name: Specific product name (be specific, include brand/model)
-  - price: Numeric price only (extract from text like "£10.42" → 10.42)
-  - currency: "GBP"
-  - unit: Description of unit (e.g., "pack of 50", "pack of 10", "each")
-  - availability: "In Stock" or "Contact for pricing"
-- notes: Any important additional info
-
-Return as JSON object with "suppliers" array. No markdown.`
+Return JSON: {"suppliers": [...]}`
           },
           {
             role: 'user',
-            content: `Extract ALL supplier data from these search results:\n\n${JSON.stringify(searchData, null, 2)}`
+            content: `Extract data:\n\n${JSON.stringify(searchData, null, 2)}`
           }
         ],
         temperature: 0.1,
@@ -153,7 +138,7 @@ Return as JSON object with "suppliers" array. No markdown.`
     // Step B: Fetch contact information
     console.log('[Step B] Fetching contact information...');
     const contactSearches = await Promise.all(
-      initialSuppliers.slice(0, 5).map(async (supplier: any) => {
+      initialSuppliers.slice(0, 3).map(async (supplier: any) => {
         try {
           const contactResponse = await fetch('https://api.valyu.ai/v1/answer', {
             method: 'POST',
@@ -204,33 +189,13 @@ Return as JSON object with "suppliers" array. No markdown.`
         messages: [
           {
             role: 'system',
-            content: `You are a data extraction specialist. Extract phone numbers and emails from contact search results and merge with existing supplier data.
+            content: `Merge contact info from searches with supplier data. Extract UK phone numbers and emails.
 
-Look for UK phone numbers in formats:
-- +44 1234 567890
-- 0800 123 4567
-- 01234 567890
-- (01234) 567890
-- +44 (0)1234 567890
-
-Extract emails in format: name@domain.com
-
-For each supplier, merge the contact information found in "contact_search" with the existing supplier data.
-
-Return JSON object with "suppliers" array containing:
-- supplier_name
-- website
-- location
-- contact_email (extracted from contact_search)
-- contact_phone (extracted from contact_search)
-- products (keep existing)
-- notes (keep existing)
-
-If no phone/email found, set to null.`
+Return JSON: {"suppliers": [...with updated contact_email and contact_phone...]}`
           },
           {
             role: 'user',
-            content: `Extract and merge contact information:\n\n${JSON.stringify(enrichedData, null, 2)}`
+            content: `Merge contacts:\n\n${JSON.stringify(enrichedData, null, 2)}`
           }
         ],
         temperature: 0.1,
