@@ -25,7 +25,17 @@ serve(async (req) => {
       throw new Error('Supplier phone number is required');
     }
 
-    console.log('Initiating call to:', phone_number);
+    // Convert UK phone number to E.164 format if needed
+    let formattedPhone = phone_number.replace(/\s+/g, ''); // Remove spaces
+    if (formattedPhone.startsWith('0')) {
+      // UK number starting with 0, convert to +44
+      formattedPhone = '+44' + formattedPhone.substring(1);
+    } else if (!formattedPhone.startsWith('+')) {
+      // Add + if missing
+      formattedPhone = '+' + formattedPhone;
+    }
+
+    console.log('Initiating call to:', formattedPhone);
 
     // Build the agent context/prompt with order details
     const agentPrompt = `You are a procurement assistant making an order call. 
@@ -47,8 +57,8 @@ Your task is to:
 3. Place the order if terms are acceptable`;
 
     // Initiate outbound call via ElevenLabs Twilio integration
-    console.log('Calling ElevenLabs Twilio endpoint with agent:', ELEVENLABS_AGENT_ID);
-    const response = await fetch('https://api.elevenlabs.io/v1/convai/conversation/twilio_outbound_call', {
+    console.log('Calling ElevenLabs API with agent:', ELEVENLABS_AGENT_ID);
+    const response = await fetch('https://api.elevenlabs.io/v1/convai/twilio/outbound-call', {
       method: 'POST',
       headers: {
         'xi-api-key': ELEVENLABS_API_KEY,
@@ -57,7 +67,7 @@ Your task is to:
       body: JSON.stringify({
         agent_id: ELEVENLABS_AGENT_ID,
         agent_phone_number_id: ELEVENLABS_PHONE_ID,
-        to_number: phone_number,
+        to_number: formattedPhone,
       }),
     });
 
