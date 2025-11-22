@@ -138,7 +138,7 @@ Return JSON: {"suppliers": [...]}`
     // Step B: Fetch contact information
     console.log('[Step B] Fetching contact information...');
     const contactSearches = await Promise.all(
-      initialSuppliers.slice(0, 3).map(async (supplier: any) => {
+      initialSuppliers.slice(0, 2).map(async (supplier: any) => {
         try {
           const contactResponse = await fetch('https://api.valyu.ai/v1/answer', {
             method: 'POST',
@@ -176,49 +176,11 @@ Return JSON: {"suppliers": [...]}`
       }))
     };
 
-    // Step C: Enrich contact info with GPT
-    console.log('[Step C] Enriching contact information with GPT...');
-    const stepCResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `Merge contact info from searches with supplier data. Extract UK phone numbers and emails.
-
-Return JSON: {"suppliers": [...with updated contact_email and contact_phone...]}`
-          },
-          {
-            role: 'user',
-            content: `Merge contacts:\n\n${JSON.stringify(enrichedData, null, 2)}`
-          }
-        ],
-        temperature: 0.1,
-        response_format: { type: 'json_object' }
-      }),
-    });
-
-    if (!stepCResponse.ok) {
-      throw new Error(`OpenAI API error: ${stepCResponse.status}`);
-    }
-
-    const stepCData = await stepCResponse.json();
-    const stepCContent = stepCData.choices[0].message.content;
-    const stepCParsed = JSON.parse(stepCContent);
-    const finalSuppliers = stepCParsed.suppliers || stepCParsed;
-
     logs.push({
-      step: 'Step 2: Enrich Contact Info (GPT)',
-      output: Array.isArray(finalSuppliers) ? finalSuppliers : [finalSuppliers],
+      step: 'Step 1: Extract & Enrich Supplier Data (GPT)',
+      output: enrichedData.suppliers,
       timestamp: new Date().toISOString()
     });
-
-    console.log(`[Step C] Enriched contact information`);
 
     // Step 2: Choose best deal with GPT
     console.log('[Step 2] Analyzing best deal with GPT...');
@@ -266,7 +228,7 @@ Be specific and analytical. Mention the availability of phone contact in your re
           },
           {
             role: 'user',
-            content: `Analyze these suppliers and choose the BEST deal for ${productName}. PRIORITIZE suppliers with phone numbers:\n\n${JSON.stringify(finalSuppliers, null, 2)}`
+            content: `Analyze these suppliers and choose the BEST deal for ${productName}. PRIORITIZE suppliers with phone numbers:\n\n${JSON.stringify(enrichedData.suppliers, null, 2)}`
           }
         ],
         temperature: 0.3,
@@ -283,7 +245,7 @@ Be specific and analytical. Mention the availability of phone contact in your re
     const bestDeal = JSON.parse(step2Content);
 
     logs.push({
-      step: 'Step 3: Choose Best Deal (GPT)',
+      step: 'Step 2: Choose Best Deal (GPT)',
       output: bestDeal,
       timestamp: new Date().toISOString()
     });
@@ -295,7 +257,7 @@ Be specific and analytical. Mention the availability of phone contact in your re
         success: true,
         logs,
         bestDeal,
-        allSuppliers: finalSuppliers
+        allSuppliers: enrichedData.suppliers
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
