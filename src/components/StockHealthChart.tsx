@@ -151,7 +151,7 @@ export const StockHealthChart = () => {
           </div>
         </div>
 
-      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full px-1 md:px-0">
+      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full px-1 md:px-0 pointer-events-none">
         <ResponsiveContainer>
           <BarChart
             data={itemsStock.map(item => ({ ...item, shortName: shortenName(item.itemName) }))}
