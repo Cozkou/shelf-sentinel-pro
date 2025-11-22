@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthForm } from "@/components/AuthForm";
 import { PhotoArchive } from "@/components/PhotoArchive";
 import { StockAlert } from "@/components/StockAlert";
 import { StockHealthChart } from "@/components/StockHealthChart";
@@ -107,13 +106,7 @@ const Index = () => {
     }
   };
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-4">
-        <AuthForm />
-      </div>
-    );
-  }
+  // Auth is now handled by ProtectedRoute in App.tsx
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
