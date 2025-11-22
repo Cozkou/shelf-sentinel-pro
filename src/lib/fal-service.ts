@@ -1,4 +1,4 @@
-import * as fal from "@fal-ai/client";
+import { fal } from "@fal-ai/client";
 
 // Configure fal client with API key
 fal.config({
@@ -28,7 +28,7 @@ export async function analyzeVideo(
     console.log("Uploaded video to:", videoUrl);
 
     // Subscribe to the video understanding endpoint
-    const result = await fal.subscribe<VideoAnalysisResult>("fal-ai/video-understanding", {
+    const result = await fal.subscribe("fal-ai/video-understanding", {
       input: {
         video_url: videoUrl,
         prompt: prompt,
@@ -67,7 +67,7 @@ export async function analyzeVideoFromUrl(
   detailedAnalysis: boolean = false
 ): Promise<string> {
   try {
-    const result = await fal.subscribe<VideoAnalysisResult>("fal-ai/video-understanding", {
+    const result = await fal.subscribe("fal-ai/video-understanding", {
       input: {
         video_url: videoUrl,
         prompt: prompt,

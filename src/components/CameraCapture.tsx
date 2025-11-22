@@ -20,8 +20,10 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideoUrl, setRecordedVideoUrl] = useState<string | null>(null);
+  const [capturedPhotoUrl, setCapturedPhotoUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -121,34 +123,66 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
     }
   };
 
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0);
+    
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        setCapturedPhotoUrl(url);
+        stopCamera();
+        
+        toast({
+          title: "Photo Captured",
+          description: "Review your photo or analyze it with AI",
+        });
+      }
+    }, 'image/jpeg', 0.95);
+  };
+
   const handleAnalyze = async () => {
-    if (!recordedVideoUrl) return;
+    const mediaUrl = capturedPhotoUrl || recordedVideoUrl;
+    if (!mediaUrl) return;
 
     setIsAnalyzing(true);
     setAnalysisResult(null);
 
     try {
-      // Convert blob URL to File
-      const response = await fetch(recordedVideoUrl);
+      const response = await fetch(mediaUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'inventory-video.webm', { type: 'video/webm' });
+      const file = new File(
+        [blob], 
+        capturedPhotoUrl ? 'inventory-photo.jpg' : 'inventory-video.webm',
+        { type: capturedPhotoUrl ? 'image/jpeg' : 'video/webm' }
+      );
 
       const result = await analyzeVideo(
         file,
-        "Analyze this inventory shelf video. List all visible items, their approximate quantities, and note any items that appear to be running low or out of stock."
+        "Analyze this inventory shelf image. List all visible items, their approximate quantities, and note any items that appear to be running low or out of stock."
       );
 
       setAnalysisResult(result);
 
       toast({
         title: "Analysis Complete",
-        description: "AI has analyzed your inventory video",
+        description: "AI has analyzed your inventory",
       });
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
         title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze video",
+        description: error instanceof Error ? error.message : "Failed to analyze",
         variant: "destructive",
       });
     } finally {
@@ -160,7 +194,11 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
     if (recordedVideoUrl) {
       URL.revokeObjectURL(recordedVideoUrl);
     }
+    if (capturedPhotoUrl) {
+      URL.revokeObjectURL(capturedPhotoUrl);
+    }
     setRecordedVideoUrl(null);
+    setCapturedPhotoUrl(null);
     setAnalysisResult(null);
     startCamera();
   };
@@ -169,7 +207,11 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
     if (recordedVideoUrl) {
       URL.revokeObjectURL(recordedVideoUrl);
     }
+    if (capturedPhotoUrl) {
+      URL.revokeObjectURL(capturedPhotoUrl);
+    }
     setRecordedVideoUrl(null);
+    setCapturedPhotoUrl(null);
     setAnalysisResult(null);
     stopCamera();
     onClose();
@@ -186,9 +228,15 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Camera/Video Preview */}
+          {/* Camera/Photo/Video Preview */}
           <Card className="relative overflow-hidden bg-black aspect-video">
-            {recordedVideoUrl ? (
+            {capturedPhotoUrl ? (
+              <img
+                src={capturedPhotoUrl}
+                alt="Captured inventory"
+                className="w-full h-full object-contain"
+              />
+            ) : recordedVideoUrl ? (
               <video
                 src={recordedVideoUrl}
                 controls
@@ -204,19 +252,33 @@ const CameraCapture = ({ open, onClose }: CameraCaptureProps) => {
               />
             )}
           </Card>
+          
+          {/* Hidden canvas for photo capture */}
+          <canvas ref={canvasRef} className="hidden" />
 
           {/* Controls */}
-          {!recordedVideoUrl ? (
-            <div className="flex gap-2 justify-center">
+          {!recordedVideoUrl && !capturedPhotoUrl ? (
+            <div className="flex gap-2 justify-center flex-wrap">
               {!isRecording ? (
-                <Button
-                  onClick={startRecording}
-                  size="lg"
-                  className="gap-2"
-                >
-                  <Video className="h-5 w-5" />
-                  Start Recording
-                </Button>
+                <>
+                  <Button
+                    onClick={capturePhoto}
+                    size="lg"
+                    className="gap-2"
+                  >
+                    <Camera className="h-5 w-5" />
+                    Take Photo
+                  </Button>
+                  <Button
+                    onClick={startRecording}
+                    size="lg"
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Video className="h-5 w-5" />
+                    Record Video
+                  </Button>
+                </>
               ) : (
                 <Button
                   onClick={stopRecording}
