@@ -179,9 +179,9 @@ const Index = () => {
           <div className="space-y-6 sm:space-y-8 animate-fade-in">
             <section>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
-                Recent Orders
+                Photo Archive
               </h3>
-              <OrdersSection />
+              <PhotoArchive refreshTrigger={refreshPhotos} />
             </section>
 
             <section>
@@ -193,9 +193,9 @@ const Index = () => {
 
             <section>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 sm:mb-5">
-                Photo Archive
+                Recent Orders
               </h3>
-              <PhotoArchive refreshTrigger={refreshPhotos} />
+              <OrdersSection />
             </section>
           </div>
         )}

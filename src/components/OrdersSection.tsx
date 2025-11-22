@@ -206,12 +206,13 @@ export const OrdersSection = () => {
 
   if (orders.length === 0) {
     return (
-      <Card className="p-4 sm:p-6">
-        <h3 className="text-sm font-medium text-foreground mb-4">Orders</h3>
-        <div className="text-center py-8">
-          <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-          <p className="text-sm text-muted-foreground">No orders yet</p>
-          <p className="text-xs text-muted-foreground mt-1">
+      <Card className="p-6 sm:p-8 bg-card/50 backdrop-blur-sm border-dashed">
+        <div className="text-center py-6">
+          <div className="rounded-full bg-secondary/50 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <Package className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">No orders yet</p>
+          <p className="text-xs text-muted-foreground">
             Orders will appear here when items need reordering
           </p>
         </div>
@@ -220,89 +221,104 @@ export const OrdersSection = () => {
   }
 
   return (
-    <Card className="p-4 sm:p-6">
-      <h3 className="text-sm font-medium text-foreground mb-4">Orders</h3>
-      <div className="space-y-3">
-        {orders.map((order) => {
-          const itemCount = order.items.length;
-          const firstItem = order.items[0];
-          const orderDate = format(new Date(order.created_at), 'MMM dd, yyyy');
-          const eta = order.expected_delivery_date
-            ? format(new Date(order.expected_delivery_date), 'MMM dd, yyyy')
-            : 'Not scheduled';
+    <div className="space-y-3">
+      {orders.map((order) => {
+        const itemCount = order.items.length;
+        const firstItem = order.items[0];
+        const orderDate = format(new Date(order.created_at), 'MMM dd, yyyy');
+        const eta = order.expected_delivery_date
+          ? format(new Date(order.expected_delivery_date), 'MMM dd, yyyy')
+          : 'Not scheduled';
 
-          return (
-            <div key={order.id} className="flex items-start gap-3 p-2 sm:p-3 rounded-lg bg-secondary/30">
-              <div className="rounded-lg bg-card p-1.5 flex-shrink-0">
-                {getStatusIcon(order.status)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <div>
-                    <p className="text-xs sm:text-sm font-medium text-foreground">
-                      {firstItem.name} ({firstItem.quantity})
-                      {itemCount > 1 && <span className="text-muted-foreground"> +{itemCount - 1} more</span>}
-                    </p>
-                    {order.suppliers?.name && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        from {order.suppliers.name}
+        return (
+          <Card key={order.id} className="overflow-hidden hover:shadow-md transition-all duration-300">
+            <div className="p-4 sm:p-5">
+              <div className="flex items-start gap-4">
+                {/* Status Icon */}
+                <div className="rounded-full bg-secondary/50 p-2.5 flex-shrink-0">
+                  {getStatusIcon(order.status)}
+                </div>
+                
+                {/* Order Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-foreground mb-1">
+                        {firstItem.name} <span className="text-muted-foreground font-normal">×{firstItem.quantity}</span>
+                        {itemCount > 1 && <span className="text-xs text-muted-foreground ml-1">+{itemCount - 1} more item{itemCount > 2 ? 's' : ''}</span>}
                       </p>
+                      {order.suppliers?.name && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Package className="h-3 w-3 inline" />
+                          {order.suppliers.name}
+                        </p>
+                      )}
+                    </div>
+                    <Badge variant={getStatusBadgeVariant(order.status)} className="text-xs font-medium flex-shrink-0">
+                      {order.status}
+                    </Badge>
+                  </div>
+
+                  {/* Order Info */}
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground mb-3">
+                    <span className="font-semibold text-foreground">${order.total_cost.toFixed(2)} {order.currency}</span>
+                    <span>•</span>
+                    <span>{orderDate}</span>
+                    {order.status !== 'draft' && order.status !== 'cancelled' && (
+                      <>
+                        <span>•</span>
+                        <span>ETA: {eta}</span>
+                      </>
                     )}
                   </div>
-                  <Badge variant={getStatusBadgeVariant(order.status)} className="text-xs flex-shrink-0">
-                    {order.status}
-                  </Badge>
+
+                  {/* AI Recommendation for draft orders */}
+                  {order.status === 'draft' && order.notes && (
+                    <div className="text-xs bg-secondary/30 border border-border/50 p-3 rounded-lg mb-3">
+                      <p className="font-semibold text-foreground mb-1">💡 AI Recommendation:</p>
+                      <p className="text-muted-foreground leading-relaxed">{order.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Action buttons for draft orders */}
+                  {order.status === 'draft' && order.approval_required && (
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        className="text-xs h-8 flex-1"
+                        onClick={() => handleApprove(order.id)}
+                        disabled={processingOrder === order.id}
+                      >
+                        {processingOrder === order.id ? (
+                          <>
+                            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                            Approve Order
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-8 flex-1"
+                        onClick={() => handleReject(order.id)}
+                        disabled={processingOrder === order.id}
+                      >
+                        <XCircle className="mr-1.5 h-3.5 w-3.5" />
+                        Reject
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  ${order.total_cost.toFixed(2)} {order.currency} • {orderDate}
-                  {order.status !== 'draft' && order.status !== 'cancelled' && ` • ETA: ${eta}`}
-                </p>
-
-                {/* Show reasoning for draft orders */}
-                {order.status === 'draft' && order.notes && (
-                  <div className="text-xs text-muted-foreground bg-background/50 p-2 rounded mb-2 max-w-prose">
-                    <strong className="text-foreground">AI Recommendation:</strong> {order.notes}
-                  </div>
-                )}
-
-                {/* Action buttons for draft orders */}
-                {order.status === 'draft' && order.approval_required && (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="text-xs h-7"
-                      onClick={() => handleApprove(order.id)}
-                      disabled={processingOrder === order.id}
-                    >
-                      {processingOrder === order.id ? (
-                        <>
-                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="mr-1 h-3 w-3" />
-                          Approve
-                        </>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs h-7"
-                      onClick={() => handleReject(order.id)}
-                      disabled={processingOrder === order.id}
-                    >
-                      <XCircle className="mr-1 h-3 w-3" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
-          );
-        })}
-      </div>
-    </Card>
+          </Card>
+        );
+      })}
+    </div>
   );
 };
