@@ -191,28 +191,11 @@ export const StockHealthChart = () => {
               <Bar
                 dataKey="quantity"
                 radius={[4, 4, 0, 0]}
-                onMouseEnter={() => {}}
-                style={{
-                  cursor: 'pointer',
-                  transition: 'opacity 0.2s ease',
-                }}
               >
                 {itemsStock.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={getBarColor(entry.quantity)}
-                    opacity={1}
-                    style={{
-                      transition: 'all 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '0.8';
-                      e.currentTarget.style.filter = 'brightness(1.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                      e.currentTarget.style.filter = 'brightness(1)';
-                    }}
                   />
                 ))}
               </Bar>
