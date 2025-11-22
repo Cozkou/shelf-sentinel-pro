@@ -146,11 +146,11 @@ export const StockHealthChart = () => {
           </div>
         </div>
 
-      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full -mx-4 px-4 md:mx-0 md:px-0">
+      <ChartContainer config={chartConfig} className="h-[400px] md:h-[300px] w-full px-1 md:px-0">
         <ResponsiveContainer>
           <BarChart
             data={itemsStock}
-            margin={{ top: 10, right: 20, left: -20, bottom: 20 }}
+            margin={{ top: 10, right: 5, left: -25, bottom: 20 }}
           >
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis
