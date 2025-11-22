@@ -139,6 +139,20 @@ export const SupplierSearchModal = ({
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </motion.div>
             )}
+
+            {!loading && logs.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="border border-border rounded-lg p-4 bg-card mt-4"
+              >
+                <h4 className="font-semibold text-sm mb-3">Complete JSON Response</h4>
+                <pre className="text-xs bg-muted/30 p-3 rounded-md overflow-x-auto max-h-96 overflow-y-auto">
+                  {JSON.stringify({ logs, bestDeal }, null, 2)}
+                </pre>
+              </motion.div>
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
