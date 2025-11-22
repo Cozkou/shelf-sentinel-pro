@@ -256,28 +256,62 @@ export const StockHealthChart = () => {
       itemName,
     });
 
-    // TODO: Implement ElevenLabs agent initiation
-    // This will use the AgentContext with supplier_info and order_details
-    console.log('Initiating voice agent with:', {
-      supplier_info: {
-        supplier_name: bestDeal.supplier_name,
-        location: bestDeal.location,
-        reasoning: bestDeal.reasoning,
-      },
-      order_details: {
-        product_name: itemName,
-        quantity_needed: 10, // TODO: Calculate based on current stock
-        price_per_unit: bestDeal.price_per_unit || 0,
-        total_cost: bestDeal.total_cost || 0,
-        supplier_name: bestDeal.supplier_name,
-        location: bestDeal.location,
+    try {
+      const currentItem = itemsStock.find(item => item.itemName === itemName);
+      const currentQuantity = currentItem?.quantity || 0;
+      
+      // Get phone number from supplier (ensure it's in E.164 format)
+      const phoneNumber = bestDeal.phone || bestDeal.contact_phone;
+      if (!phoneNumber) {
+        throw new Error('Supplier phone number not available');
       }
-    });
 
-    toast({
-      title: "Voice Agent Initiated",
-      description: `Preparing to contact ${bestDeal.supplier_name}`,
-    });
+      const { data: callData, error: callError } = await supabase.functions.invoke('initiate-agent-call', {
+        body: {
+          supplier_info: {
+            supplier_name: bestDeal.supplier_name,
+            location: bestDeal.location,
+            reasoning: bestDeal.reasoning,
+          },
+          order_details: {
+            product_name: itemName,
+            quantity_needed: REORDER_LEVEL - currentQuantity,
+            price_per_unit: bestDeal.price_per_unit || 0,
+            total_cost: (REORDER_LEVEL - currentQuantity) * (bestDeal.price_per_unit || 0),
+          },
+          phone_number: phoneNumber,
+        }
+      });
+
+      if (callError) throw callError;
+
+      addActivity({
+        id: `called-${itemName}-${Date.now()}`,
+        type: 'calling',
+        message: `Voice agent call initiated to ${bestDeal.supplier_name}`,
+        timestamp: new Date(),
+        itemName,
+      });
+
+      toast({
+        title: "Call Initiated",
+        description: `AI agent is now calling ${bestDeal.supplier_name}`,
+      });
+    } catch (error) {
+      console.error('Error initiating voice agent:', error);
+      addActivity({
+        id: `error-call-${itemName}-${Date.now()}`,
+        type: 'error',
+        message: `Failed to initiate call: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        timestamp: new Date(),
+        itemName,
+      });
+      toast({
+        title: "Call Failed",
+        description: error instanceof Error ? error.message : "Could not initiate agent call",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleItemClick = (item: ItemStock) => {
